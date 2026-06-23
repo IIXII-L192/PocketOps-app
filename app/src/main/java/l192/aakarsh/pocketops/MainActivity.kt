@@ -17,6 +17,7 @@ import l192.aakarsh.pocketops.ui.QuickUpiApp
 
 import l192.aakarsh.pocketops.ui.screens.QuickTool
 import l192.aakarsh.pocketops.ui.theme.*
+import androidx.compose.ui.graphics.Color
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -111,12 +112,34 @@ fun PocketOpsTheme(
             }
         }
         else -> {
-            val supportsDynamicColor = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
-            when {
-                supportsDynamicColor && isDarkTheme -> dynamicDarkColorScheme(LocalContext.current)
-                supportsDynamicColor && !isDarkTheme -> dynamicLightColorScheme(LocalContext.current)
-                isDarkTheme -> darkColorScheme()
-                else -> lightColorScheme()
+            if (isDarkTheme) {
+                darkColorScheme(
+                    primary = Color(0xFFFE9F06), // Gold/Orange
+                    onPrimary = Color(0xFF060D1D),
+                    primaryContainer = Color(0xFF1F2C46),
+                    onPrimaryContainer = Color(0xFFFE9F06),
+                    secondary = Color(0xFFFE9F06),
+                    background = Color(0xFF060D1D),
+                    surface = Color(0xFF0C192E),
+                    onBackground = Color.White,
+                    onSurface = Color.White,
+                    surfaceVariant = Color(0xFF13233F),
+                    onSurfaceVariant = Color(0xFFCBD5E0)
+                )
+            } else {
+                lightColorScheme(
+                    primary = Color(0xFFE65100), // Rich orange/gold
+                    onPrimary = Color.White,
+                    primaryContainer = Color(0xFFFFF3E0),
+                    onPrimaryContainer = Color(0xFFE65100),
+                    secondary = Color(0xFFE65100),
+                    background = Color(0xFFF4F6F9),
+                    surface = Color.White,
+                    onBackground = Color(0xFF060D1D),
+                    onSurface = Color(0xFF060D1D),
+                    surfaceVariant = Color(0xFFE0E0E0),
+                    onSurfaceVariant = Color(0xFF424242)
+                )
             }
         }
     }
