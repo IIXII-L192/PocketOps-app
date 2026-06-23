@@ -61,8 +61,8 @@ fun DashboardScreen(
             title = "Quick UPI",
             description = "Generate dynamic payment QRs offline in seconds.",
             iconRes = R.drawable.ic_qr_code,
-            gradientColors = listOf(Color(0xFFE3F2FD), Color(0xFFBBDEFB)),
-            darkGradientColors = listOf(Color(0xFF0D47A1), Color(0xFF1565C0)),
+            gradientColors = listOf(Color(0xFF2979FF), Color(0xFF1565C0)),
+            darkGradientColors = listOf(Color(0xFF1565C0), Color(0xFF0D47A1)),
             onClick = { onToolSelected(QuickTool.UPI) }
         )
 
@@ -70,8 +70,8 @@ fun DashboardScreen(
             title = "Quick WhatsApp",
             description = "Start a chat without saving the number to contacts.",
             iconRes = R.drawable.ic_whatsapp,
-            gradientColors = listOf(Color(0xFFE8F5E9), Color(0xFFC8E6C9)),
-            darkGradientColors = listOf(Color(0xFF1B5E20), Color(0xFF2E7D32)),
+            gradientColors = listOf(Color(0xFF00E676), Color(0xFF2E7D32)),
+            darkGradientColors = listOf(Color(0xFF2E7D32), Color(0xFF1B5E20)),
             onClick = { onToolSelected(QuickTool.WHATSAPP) }
         )
 
@@ -79,8 +79,8 @@ fun DashboardScreen(
             title = "Quick Insta",
             description = "Open any Instagram profile instantly by username.",
             iconRes = R.drawable.ic_instagram,
-            gradientColors = listOf(Color(0xFFFCE4EC), Color(0xFFF8BBD0)),
-            darkGradientColors = listOf(Color(0xFF880E4F), Color(0xFFAD1457)),
+            gradientColors = listOf(Color(0xFFFF1744), Color(0xFFAD1457)),
+            darkGradientColors = listOf(Color(0xFFAD1457), Color(0xFF880E4F)),
             onClick = { onToolSelected(QuickTool.INSTAGRAM) }
         )
 
@@ -145,7 +145,7 @@ fun ToolCard(
             Icon(
                 painter = painterResource(id = iconRes),
                 contentDescription = title,
-                tint = if (isDark) Color.White else MaterialTheme.colorScheme.primary,
+                tint = Color.White,
                 modifier = Modifier.size(40.dp)
             )
             Spacer(modifier = Modifier.width(16.dp))
@@ -156,13 +156,13 @@ fun ToolCard(
                     text = title,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.ExtraBold,
-                    color = if (isDark) Color.White else Color(0xFF1A1A1A)
+                    color = Color.White
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = description,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = if (isDark) Color.White.copy(alpha = 0.8f) else Color(0xFF4A4A4A)
+                    color = Color.White.copy(alpha = 0.85f)
                 )
             }
         }
