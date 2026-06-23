@@ -1,5 +1,6 @@
 package l192.aakarsh.pocketops.ui
 
+import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
@@ -13,6 +14,10 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.BasicAlertDialog
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -29,6 +34,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
@@ -44,7 +50,6 @@ import l192.aakarsh.pocketops.ui.screens.EnterAmountScreen
 import l192.aakarsh.pocketops.ui.screens.QuickInstaScreen
 import l192.aakarsh.pocketops.ui.screens.QuickTool
 import l192.aakarsh.pocketops.ui.screens.QuickWhatsAppScreen
-import l192.aakarsh.pocketops.ui.screens.SettingsScreen
 import l192.aakarsh.pocketops.ui.screens.SetupScreen
 import l192.aakarsh.pocketops.ui.screens.ShowQrScreen
 import l192.aakarsh.pocketops.utils.QRCodeGenerator
@@ -58,7 +63,6 @@ sealed interface QuickUpiUiState {
         val amount: String, val qrBitmap: Bitmap, val upiId: String, val payeeName: String
     ) : QuickUpiUiState
 
-    data object Settings : QuickUpiUiState
     data object WhatsApp : QuickUpiUiState
     data object Instagram : QuickUpiUiState
 }
@@ -147,12 +151,6 @@ fun QuickUpiApp(
                 )
             }, onResetUpi = {
                 uiState = QuickUpiUiState.Setup
-            }, onToggleShowUpiId = { show ->
-                scope.launch {
-                    userStore.saveShowUpiId(show)
-                }
-            }, onSettingsClick = {
-                uiState = QuickUpiUiState.Settings
             }, onBackToHome = {
                 uiState = QuickUpiUiState.Dashboard
             }, onToolSelected = { tool ->
@@ -184,8 +182,6 @@ fun QuickUpiContent(
     onSaveUpiIds: (List<String>, String) -> Unit,
     onGenerateQr: (String, String, String) -> Unit,
     onResetUpi: () -> Unit,
-    onToggleShowUpiId: (Boolean) -> Unit,
-    onSettingsClick: () -> Unit,
     onBackToHome: () -> Unit,
     onToolSelected: (QuickTool) -> Unit = {},
     onQrShown: () -> Unit = {},
@@ -234,7 +230,6 @@ fun QuickUpiContent(
 
                     Text(
                         text = when (uiState) {
-                            QuickUpiUiState.Settings -> "Settings"
                             QuickUpiUiState.WhatsApp -> "Quick WhatsApp"
                             QuickUpiUiState.Instagram -> "Quick Insta"
                             else -> "PocketOps"
@@ -246,19 +241,7 @@ fun QuickUpiContent(
                         modifier = Modifier.weight(1f)
                     )
 
-                    Box(modifier = Modifier.size(48.dp)) {
-                        if (uiState is QuickUpiUiState.EnterAmount || uiState is QuickUpiUiState.Dashboard) {
-                            IconButton(
-                                onClick = onSettingsClick,
-                                modifier = Modifier.align(Alignment.Center)
-                            ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.ic_settings),
-                                    contentDescription = "Settings"
-                                )
-                            }
-                        }
-                    }
+                    Box(modifier = Modifier.size(48.dp))
                 }
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -297,19 +280,50 @@ fun QuickUpiContent(
                         )
                     }
 
-                    QuickUpiUiState.Settings -> {
-                        SettingsScreen(
-                            showUpiId = showUpiId,
-                            onToggleShowUpiId = onToggleShowUpiId
-                        )
-                    }
-
                     QuickUpiUiState.WhatsApp -> {
                         QuickWhatsAppScreen(onDismiss = onDismiss)
                     }
 
                     QuickUpiUiState.Instagram -> {
                         QuickInstaScreen(onDismiss = onDismiss)
+                    }
+                }
+
+                val context = LocalContext.current
+                Spacer(modifier = Modifier.height(16.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    FilledTonalButton(
+                        onClick = {
+                            val intent = Intent(
+                                Intent.ACTION_VIEW,
+                                Uri.parse("https://github.com/sponsors/IIXII-L192")
+                            )
+                            context.startActivity(intent)
+                        },
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Sponsor", style = MaterialTheme.typography.bodyMedium)
+                    }
+
+                    OutlinedButton(
+                        onClick = {
+                            val upiUri = Uri.Builder().scheme("upi").authority("pay")
+                                .appendQueryParameter("pa", context.getString(R.string.upi_id))
+                                .appendQueryParameter("pn", context.getString(R.string.upi_name))
+                                .appendQueryParameter("tn", context.getString(R.string.upi_description))
+                                .appendQueryParameter("cu", "INR")
+                                .build()
+                            val intent = Intent(Intent.ACTION_VIEW, upiUri)
+                            context.startActivity(intent)
+                        },
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Support", style = MaterialTheme.typography.bodyMedium)
                     }
                 }
             }
