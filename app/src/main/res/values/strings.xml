@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">PocketOps</string>
+    <string name="quick_tile_title">PocketOps</string>
+    <string name="quick_tile_subtitle">Tap to open tools</string>
+    <string name="upi_id">bzatch70@okaxis</string>
+    <string name="upi_name">Mohd Zaid</string>
+    <string name="upi_description">Support Development</string>
+    <string name="shortcut_long_label">Show QR Code</string>
+</resources>

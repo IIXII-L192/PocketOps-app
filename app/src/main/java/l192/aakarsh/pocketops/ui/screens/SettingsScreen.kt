@@ -1,0 +1,108 @@
+package l192.aakarsh.pocketops.ui.screens
+
+import android.content.Intent
+import android.net.Uri
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Button
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
+import l192.aakarsh.pocketops.R
+
+@Composable
+fun SettingsScreen(
+    showUpiId: Boolean, onToggleShowUpiId: (Boolean) -> Unit
+) {
+    val context = LocalContext.current
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onToggleShowUpiId(!showUpiId) }
+            .padding(vertical = 8.dp)) {
+        Text(
+            "Show UPI ID in QR Screen",
+            modifier = Modifier.weight(1f),
+            style = MaterialTheme.typography.bodyMedium
+        )
+        Switch(
+            checked = showUpiId,
+            onCheckedChange = { onToggleShowUpiId(it) },
+            thumbContent = if (showUpiId) {
+                {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_check),
+                        contentDescription = null,
+                        modifier = Modifier.size(SwitchDefaults.IconSize),
+                    )
+                }
+            } else {
+                null
+            })
+    }
+
+    Spacer(modifier = Modifier.height(8.dp))
+
+    Button(
+        onClick = {
+            val intent = Intent(
+                Intent.ACTION_VIEW,
+                Uri.parse("https://github.com/BioHazard786/quick-upi")
+            )
+            context.startActivity(intent)
+        }, modifier = Modifier.fillMaxWidth()
+    ) {
+        Text("Github Repo")
+    }
+
+    Spacer(modifier = Modifier.height(8.dp))
+
+    FilledTonalButton(
+        onClick = {
+            val intent = Intent(
+                Intent.ACTION_VIEW,
+                Uri.parse("https://github.com/sponsors/BioHazard786")
+            )
+            context.startActivity(intent)
+        }, modifier = Modifier.fillMaxWidth()
+    ) {
+        Text("Sponsor")
+    }
+
+    Spacer(modifier = Modifier.height(4.dp))
+
+    OutlinedButton(
+        onClick = {
+            val upiUri = Uri.Builder().scheme("upi").authority("pay")
+                .appendQueryParameter("pa", context.getString(R.string.upi_id))
+                .appendQueryParameter("pn", context.getString(R.string.upi_name))
+                .appendQueryParameter("tn", context.getString(R.string.upi_description))
+                .appendQueryParameter("cu", "INR")
+                .build()
+
+            val intent = Intent(Intent.ACTION_VIEW, upiUri)
+            context.startActivity(intent)
+        }, modifier = Modifier.fillMaxWidth()
+    ) {
+        Text("Support Development")
+    }
+}
+
+
