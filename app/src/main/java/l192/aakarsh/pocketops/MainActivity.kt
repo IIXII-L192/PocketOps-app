@@ -24,9 +24,12 @@ class MainActivity : ComponentActivity() {
 
         val userStore = UserStore(this)
 
+        val startWithQr = intent?.action == "l192.aakarsh.pocketops.ACTION_SHOW_QR"
+
         setContent {
             QuickUpiApp(
                 userStore = userStore,
+                startWithQr = startWithQr,
                 onQrShown = { maxBrightness() },
                 onRestoreBrightness = { restoreBrightness() },
                 onDismiss = { finish() }

@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -37,14 +38,12 @@ fun QuickInstaScreen(
     Column(
         modifier = Modifier.fillMaxWidth()
     ) {
-        Text("Enter Instagram Details", modifier = Modifier.fillMaxWidth())
-        Spacer(modifier = Modifier.height(8.dp))
-
         OutlinedTextField(
             value = username,
             onValueChange = { username = it },
             label = { Text("Instagram Username") },
             placeholder = { Text("username") },
+            shape = RoundedCornerShape(16.dp),
             leadingIcon = {
                 Icon(
                     painter = painterResource(R.drawable.ic_person),
@@ -80,13 +79,13 @@ fun QuickInstaScreen(
                     try {
                         context.startActivity(intent)
                     } catch (e: ActivityNotFoundException) {
-
                         context.startActivity(Intent(Intent.ACTION_VIEW, browserUri))
                     }
                     onDismiss()
                 }
             },
             enabled = isValid,
+            shape = RoundedCornerShape(16.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Open Profile")

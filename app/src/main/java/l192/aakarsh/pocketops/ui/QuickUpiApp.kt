@@ -30,6 +30,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import l192.aakarsh.pocketops.PocketOpsTheme
@@ -62,6 +66,7 @@ sealed interface QuickUpiUiState {
 @Composable
 fun QuickUpiApp(
     userStore: UserStore,
+    startWithQr: Boolean = false,
     onQrShown: () -> Unit = {},
     onRestoreBrightness: () -> Unit = {},
     onDismiss: () -> Unit = {}
@@ -75,6 +80,16 @@ fun QuickUpiApp(
 
     val scope = rememberCoroutineScope()
     var uiState by remember { mutableStateOf<QuickUpiUiState>(QuickUpiUiState.Dashboard) }
+
+    LaunchedEffect(savedUpiIds) {
+        if (startWithQr) {
+            if (savedUpiIds.isNotEmpty()) {
+                uiState = QuickUpiUiState.EnterAmount(savedUpiIds)
+            } else {
+                uiState = QuickUpiUiState.Setup
+            }
+        }
+    }
 
     val currentTool = when (uiState) {
         QuickUpiUiState.WhatsApp -> QuickTool.WHATSAPP
@@ -198,18 +213,22 @@ fun QuickUpiContent(
             ) {
 
 
-                Box(
-                    modifier = Modifier.fillMaxWidth()
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    if (uiState != QuickUpiUiState.Dashboard) {
-                        IconButton(
-                            onClick = onBackToHome,
-                            modifier = Modifier.align(Alignment.CenterStart)
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_arrow_back),
-                                contentDescription = "Back"
-                            )
+                    Box(modifier = Modifier.size(48.dp)) {
+                        if (uiState != QuickUpiUiState.Dashboard) {
+                            IconButton(
+                                onClick = onBackToHome,
+                                modifier = Modifier.align(Alignment.Center)
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_arrow_back),
+                                    contentDescription = "Back"
+                                )
+                            }
                         }
                     }
 
@@ -220,20 +239,24 @@ fun QuickUpiContent(
                             QuickUpiUiState.Instagram -> "Quick Insta"
                             else -> "PocketOps"
                         },
-                        style = MaterialTheme.typography.headlineMedium,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.align(Alignment.Center)
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.weight(1f)
                     )
 
-                    if (uiState is QuickUpiUiState.EnterAmount || uiState is QuickUpiUiState.Dashboard) {
-                        IconButton(
-                            onClick = onSettingsClick,
-                            modifier = Modifier.align(Alignment.CenterEnd)
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_settings),
-                                contentDescription = "Settings"
-                            )
+                    Box(modifier = Modifier.size(48.dp)) {
+                        if (uiState is QuickUpiUiState.EnterAmount || uiState is QuickUpiUiState.Dashboard) {
+                            IconButton(
+                                onClick = onSettingsClick,
+                                modifier = Modifier.align(Alignment.Center)
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_settings),
+                                    contentDescription = "Settings"
+                                )
+                            }
                         }
                     }
                 }

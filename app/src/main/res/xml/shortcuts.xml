@@ -7,8 +7,8 @@
         android:shortcutShortLabel="@string/app_name"
         android:shortcutLongLabel="@string/shortcut_long_label">
         <intent
-            android:action="android.intent.action.VIEW"
+            android:action="l192.aakarsh.pocketops.ACTION_SHOW_QR"
             android:targetPackage="l192.aakarsh.pocketops"
-            android:targetClass="l192.aakarsh.pocketops.ui.WidgetQrActivity" />
+            android:targetClass="l192.aakarsh.pocketops.MainActivity" />
     </shortcut>
 </shortcuts>

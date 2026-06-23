@@ -116,6 +116,7 @@ fun EnterAmountScreen(
         onValueChange = { amountInput = it },
         label = { Text("Amount (Optional)") },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        shape = RoundedCornerShape(16.dp),
         leadingIcon = {
             Icon(
                 painter = painterResource(R.drawable.ic_currency_rupee),
@@ -133,7 +134,8 @@ fun EnterAmountScreen(
             }
         },
         isError = isAmountError,
-        singleLine = true
+        singleLine = true,
+        modifier = Modifier.fillMaxWidth()
     )
 
     Spacer(modifier = Modifier.height(8.dp))
@@ -159,6 +161,7 @@ fun EnterAmountScreen(
         value = noteInput,
         onValueChange = { noteInput = it },
         label = { Text("Note (Optional)") },
+        shape = RoundedCornerShape(16.dp),
         leadingIcon = {
             Icon(
                 painter = painterResource(R.drawable.ic_note),
@@ -175,7 +178,8 @@ fun EnterAmountScreen(
                 }
             }
         },
-        singleLine = true
+        singleLine = true,
+        modifier = Modifier.fillMaxWidth()
     )
 
     Spacer(modifier = Modifier.height(16.dp))
@@ -183,20 +187,21 @@ fun EnterAmountScreen(
     Button(
         onClick = {
             if (isAmountValid) {
-
-
                 onGenerateQr(amountInput, noteInput, selectedUpiId)
             }
-        }, enabled = isAmountValid && selectedUpiId.isNotEmpty(), modifier = Modifier.fillMaxWidth()
+        },
+        enabled = isAmountValid && selectedUpiId.isNotEmpty(),
+        shape = RoundedCornerShape(16.dp),
+        modifier = Modifier.fillMaxWidth()
     ) { Text("Generate QR Code") }
 
-    Spacer(modifier = Modifier.height(4.dp))
+    Spacer(modifier = Modifier.height(8.dp))
     OutlinedButton(
-        onClick = { onResetUpi() }, modifier = Modifier.fillMaxWidth(),
+        onClick = { onResetUpi() },
+        shape = RoundedCornerShape(16.dp),
+        modifier = Modifier.fillMaxWidth(),
         colors = ButtonDefaults.outlinedButtonColors(
             contentColor = MaterialTheme.colorScheme.error
         )
     ) { Text("Reset") }
 }
-
-

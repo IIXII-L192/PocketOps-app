@@ -68,8 +68,7 @@ dependencies {
 
     implementation("androidx.datastore:datastore-preferences:1.2.0")
     implementation("com.google.zxing:core:3.5.4")
-    implementation("androidx.glance:glance-appwidget:1.1.1")
-    implementation("androidx.glance:glance-material3:1.1.1")
+
 
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))

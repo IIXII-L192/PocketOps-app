@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -37,15 +38,13 @@ fun QuickWhatsAppScreen(
     Column(
         modifier = Modifier.fillMaxWidth()
     ) {
-        Text("Enter WhatsApp Details", modifier = Modifier.fillMaxWidth())
-        Spacer(modifier = Modifier.height(8.dp))
-
         OutlinedTextField(
             value = phoneNumber,
             onValueChange = { phoneNumber = it },
-            label = { Text("Phone Number (with Country Code)") },
+            label = { Text("Phone Number") },
             placeholder = { Text("e.g. +919876543210") },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+            shape = RoundedCornerShape(16.dp),
             leadingIcon = {
                 Icon(
                     painter = painterResource(R.drawable.ic_person),
@@ -83,6 +82,7 @@ fun QuickWhatsAppScreen(
                 }
             },
             enabled = isValid,
+            shape = RoundedCornerShape(16.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Start Chat")
