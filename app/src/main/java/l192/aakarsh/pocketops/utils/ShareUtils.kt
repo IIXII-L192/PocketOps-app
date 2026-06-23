@@ -99,9 +99,8 @@ object ShareUtils {
             }
 
             // Draw footer centered at the bottom: [small logo] PocketOps
-            val logoDrawable = context.getDrawable(R.drawable.ic_pocketops_tile)?.mutate()
+            val logoDrawable = context.getDrawable(R.mipmap.ic_launcher)
             if (logoDrawable != null) {
-                logoDrawable.setTint("#4c566a".toColorInt())
                 val footerText = "PocketOps"
                 val footerPaint = Paint().apply {
                     color = "#4c566a".toColorInt()
