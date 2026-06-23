@@ -42,7 +42,7 @@ fun QuickInstaScreen(
             value = username,
             onValueChange = { username = it },
             label = { Text("Instagram Username") },
-            placeholder = { Text("username") },
+            placeholder = { Text("anshu07.192") },
             shape = RoundedCornerShape(16.dp),
             leadingIcon = {
                 Icon(
