@@ -64,7 +64,7 @@ fun SettingsScreen(
         onClick = {
             val intent = Intent(
                 Intent.ACTION_VIEW,
-                Uri.parse("https://github.com/BioHazard786/quick-upi")
+                Uri.parse("https://github.com/IIXII-L192/PocketOps-app")
             )
             context.startActivity(intent)
         }, modifier = Modifier.fillMaxWidth()
@@ -78,7 +78,7 @@ fun SettingsScreen(
         onClick = {
             val intent = Intent(
                 Intent.ACTION_VIEW,
-                Uri.parse("https://github.com/sponsors/BioHazard786")
+                Uri.parse("https://github.com/sponsors/IIXII-L192")
             )
             context.startActivity(intent)
         }, modifier = Modifier.fillMaxWidth()

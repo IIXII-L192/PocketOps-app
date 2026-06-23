@@ -8,7 +8,7 @@
         android:shortcutLongLabel="@string/shortcut_long_label">
         <intent
             android:action="android.intent.action.VIEW"
-            android:targetPackage="com.biohazard786.quickupi"
-            android:targetClass="com.biohazard786.quickupi.ui.WidgetQrActivity" />
+            android:targetPackage="l192.aakarsh.pocketops"
+            android:targetClass="l192.aakarsh.pocketops.ui.WidgetQrActivity" />
     </shortcut>
 </shortcuts>
