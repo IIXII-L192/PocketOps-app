@@ -15,6 +15,14 @@
 
 ---
 
+## 📱 Screenshots
+
+| Menu | Quick UPI | Quick Chat | Quick Insta |
+|:----:|:---------:|:--------------:|:-----------:|
+| <img src="PocketOps_1.png" width="200"/> | <img src="PocketOps_2.png" width="200"/> | <img src="PocketOps_3.png" width="200"/> | <img src="PocketOps_4.png" width="200"/> |
+
+---
+
 ## 🚀 Key Features
 
 *   **⚡ Quick UPI (UPI Feature)**: 
@@ -22,7 +30,7 @@
     *   Smart recent-amount chips for fast inputs.
     *   Auto-brightness boost to 100% while showing the QR code for instant scanner detection (restores previous brightness on close).
     *   Supports saving and switching between multiple UPI IDs.
-*   **💬 Quick WhatsApp**: 
+*   **💬 Quick Chat**: 
     *   Start chat windows directly with any phone number without saving it to your contacts list.
 *   **📸 Quick Insta**: 
     *   Type an Instagram username (auto-cleans leading `@` symbols) and open their profile directly in the official app or browser.
@@ -35,7 +43,7 @@
 ## 🎨 Expressive Theme System
 
 PocketOps is built to adapt dynamically to your workflow. The entire app adjusts its color palette contextually depending on which tool is active:
-*   🟢 **Green Theme**: Activates when Quick WhatsApp is selected.
+*   🟢 **Green Theme**: Activates when Quick Chat is selected.
 *   🌸 **Pink Theme**: Activates when Quick Instagram is selected.
 *   🔹 **Blue Theme**: Activates when Quick UPI is selected.
 *   🎨 **Device Theme-Aware**: Fully follows your system's Light/Dark mode settings.

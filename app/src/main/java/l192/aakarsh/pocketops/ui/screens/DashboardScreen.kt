@@ -1,9 +1,13 @@
 package l192.aakarsh.pocketops.ui.screens
 
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.Spring
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -59,7 +63,7 @@ fun DashboardScreen(
         
         ToolCard(
             title = "Quick UPI",
-            description = "Generate dynamic payment QRs offline in seconds.",
+            description = "Offline payment QRs in seconds.",
             iconRes = R.drawable.ic_qr_code,
             gradientColors = listOf(Color(0xFF2979FF), Color(0xFF1565C0)),
             darkGradientColors = listOf(Color(0xFF1565C0), Color(0xFF0D47A1)),
@@ -67,8 +71,8 @@ fun DashboardScreen(
         )
 
         ToolCard(
-            title = "Quick WhatsApp",
-            description = "Start a chat without saving the number to contacts.",
+            title = "Quick Chat",
+            description = "Direct chat without saving contacts.",
             iconRes = R.drawable.ic_whatsapp,
             gradientColors = listOf(Color(0xFF00E676), Color(0xFF2E7D32)),
             darkGradientColors = listOf(Color(0xFF2E7D32), Color(0xFF1B5E20)),
@@ -77,7 +81,7 @@ fun DashboardScreen(
 
         ToolCard(
             title = "Quick Insta",
-            description = "Open any Instagram profile instantly by username.",
+            description = "Instant profile search by username.",
             iconRes = R.drawable.ic_instagram,
             gradientColors = listOf(Color(0xFFFF1744), Color(0xFFAD1457)),
             darkGradientColors = listOf(Color(0xFFAD1457), Color(0xFF880E4F)),
@@ -107,20 +111,37 @@ fun ToolCard(
     onClick: () -> Unit
 ) {
     var pressed by remember { mutableStateOf(false) }
-    val scale by animateFloatAsState(if (pressed) 0.96f else 1f, label = "pressScale")
+    val scale by animateFloatAsState(
+        targetValue = if (pressed) 0.95f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "pressScale"
+    )
     
-    val isDark = MaterialTheme.colorScheme.primary.red < 0.5f // Simple heuristic for dark theme
+    val isDark = isSystemInDarkTheme()
     val activeGradients = if (isDark) darkGradientColors else gradientColors
+    val accentColor = activeGradients.first()
+
+    // Frosted-glass colors
+    val cardBgColor = if (isDark) Color.White.copy(alpha = 0.05f) else Color.Black.copy(alpha = 0.03f)
+    val borderColor = if (isDark) Color.White.copy(alpha = 0.12f) else Color.Black.copy(alpha = 0.08f)
 
     Card(
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+        colors = CardDefaults.cardColors(containerColor = cardBgColor),
         modifier = Modifier
             .fillMaxWidth()
             .graphicsLayer {
                 scaleX = scale
                 scaleY = scale
             }
+            .border(
+                width = 1.dp,
+                color = borderColor,
+                shape = RoundedCornerShape(24.dp)
+            )
             .pointerInput(Unit) {
                 detectTapGestures(
                     onPress = {
@@ -137,7 +158,14 @@ fun ToolCard(
     ) {
         Row(
             modifier = Modifier
-                .background(Brush.horizontalGradient(activeGradients))
+                .background(
+                    brush = Brush.horizontalGradient(
+                        colors = listOf(
+                            accentColor.copy(alpha = if (isDark) 0.16f else 0.08f),
+                            accentColor.copy(alpha = if (isDark) 0.04f else 0.01f)
+                        )
+                    )
+                )
                 .padding(20.dp)
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
@@ -145,7 +173,7 @@ fun ToolCard(
             Icon(
                 painter = painterResource(id = iconRes),
                 contentDescription = title,
-                tint = Color.White,
+                tint = accentColor,
                 modifier = Modifier.size(40.dp)
             )
             Spacer(modifier = Modifier.width(16.dp))
@@ -156,13 +184,13 @@ fun ToolCard(
                     text = title,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.ExtraBold,
-                    color = Color.White
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = description,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color.White.copy(alpha = 0.85f)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }

@@ -25,6 +25,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.Spring
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -49,7 +59,7 @@ import l192.aakarsh.pocketops.ui.screens.DashboardScreen
 import l192.aakarsh.pocketops.ui.screens.EnterAmountScreen
 import l192.aakarsh.pocketops.ui.screens.QuickInstaScreen
 import l192.aakarsh.pocketops.ui.screens.QuickTool
-import l192.aakarsh.pocketops.ui.screens.QuickWhatsAppScreen
+import l192.aakarsh.pocketops.ui.screens.QuickChatScreen
 import l192.aakarsh.pocketops.ui.screens.SetupScreen
 import l192.aakarsh.pocketops.ui.screens.ShowQrScreen
 import l192.aakarsh.pocketops.utils.QRCodeGenerator
@@ -83,6 +93,7 @@ fun QuickUpiApp(
     val showUpiId by userStore.showUpiId.collectAsState(initial = true)
 
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
     var uiState by remember { mutableStateOf<QuickUpiUiState>(QuickUpiUiState.Dashboard) }
 
     LaunchedEffect(savedUpiIds) {
@@ -142,13 +153,16 @@ fun QuickUpiApp(
 
                 val payeeURL = uriBuilder.build()
 
-                val bitmap = QRCodeGenerator.generateQRCode(
-                    payeeURL.toString(), 1024, 1024
-                )
-
-                uiState = QuickUpiUiState.ShowQr(
-                    amount, bitmap, selectedUpiId, savedPayeeName ?: ""
-                )
+                scope.launch {
+                    val bitmap = withContext(Dispatchers.Default) {
+                        QRCodeGenerator.generateQRCode(
+                            context, payeeURL.toString(), 1024, 1024
+                        )
+                    }
+                    uiState = QuickUpiUiState.ShowQr(
+                        amount, bitmap, selectedUpiId, savedPayeeName ?: ""
+                    )
+                }
             }, onResetUpi = {
                 uiState = QuickUpiUiState.Setup
             }, onBackToHome = {
@@ -230,8 +244,11 @@ fun QuickUpiContent(
 
                     Text(
                         text = when (uiState) {
-                            QuickUpiUiState.WhatsApp -> "Quick WhatsApp"
+                            QuickUpiUiState.WhatsApp -> "Quick Chat"
                             QuickUpiUiState.Instagram -> "Quick Insta"
+                            QuickUpiUiState.Setup -> "Quick UPI"
+                            is QuickUpiUiState.EnterAmount -> "Quick UPI"
+                            is QuickUpiUiState.ShowQr -> "Quick UPI"
                             else -> "PocketOps"
                         },
                         style = MaterialTheme.typography.titleLarge,
@@ -246,46 +263,64 @@ fun QuickUpiContent(
                 Spacer(modifier = Modifier.height(16.dp))
 
 
-                when (uiState) {
-                    QuickUpiUiState.Dashboard -> {
-                        DashboardScreen(onToolSelected = onToolSelected)
-                    }
+                AnimatedContent(
+                    targetState = uiState,
+                    transitionSpec = {
+                        (slideInHorizontally(
+                            animationSpec = spring(stiffness = Spring.StiffnessLow),
+                            initialOffsetX = { fullWidth -> if (targetState.order() > initialState.order()) fullWidth else -fullWidth }
+                        ) + fadeIn(animationSpec = spring(stiffness = Spring.StiffnessLow)))
+                            .togetherWith(
+                                slideOutHorizontally(
+                                    animationSpec = spring(stiffness = Spring.StiffnessLow),
+                                    targetOffsetX = { fullWidth -> if (targetState.order() > initialState.order()) -fullWidth else fullWidth }
+                                ) + fadeOut(animationSpec = spring(stiffness = Spring.StiffnessLow))
+                            )
+                    },
+                    label = "screenTransition",
+                    modifier = Modifier.fillMaxWidth()
+                ) { state ->
+                    when (state) {
+                        QuickUpiUiState.Dashboard -> {
+                            DashboardScreen(onToolSelected = onToolSelected)
+                        }
 
-                    QuickUpiUiState.Setup -> {
-                        SetupScreen(
-                            upiIds = upiIds,
-                            onSaveUpiIds = onSaveUpiIds,
-                        )
-                    }
+                        QuickUpiUiState.Setup -> {
+                            SetupScreen(
+                                upiIds = upiIds,
+                                onSaveUpiIds = onSaveUpiIds,
+                            )
+                        }
 
-                    is QuickUpiUiState.EnterAmount -> {
-                        EnterAmountScreen(
-                            recentAmounts = recentAmounts,
-                            upiIds = uiState.upiIds,
-                            onGenerateQr = onGenerateQr,
-                            onResetUpi = onResetUpi
-                        )
-                    }
+                        is QuickUpiUiState.EnterAmount -> {
+                            EnterAmountScreen(
+                                recentAmounts = recentAmounts,
+                                upiIds = state.upiIds,
+                                onGenerateQr = onGenerateQr,
+                                onResetUpi = onResetUpi
+                            )
+                        }
 
-                    is QuickUpiUiState.ShowQr -> {
-                        ShowQrScreen(
-                            amount = uiState.amount,
-                            qrBitmap = uiState.qrBitmap,
-                            upiId = uiState.upiId,
-                            payeeName = uiState.payeeName,
-                            showUpiId = showUpiId,
-                            onQrShown = onQrShown,
-                            onRestoreBrightness = onRestoreBrightness,
-                            onDismiss = onDismiss
-                        )
-                    }
+                        is QuickUpiUiState.ShowQr -> {
+                            ShowQrScreen(
+                                amount = state.amount,
+                                qrBitmap = state.qrBitmap,
+                                upiId = state.upiId,
+                                payeeName = state.payeeName,
+                                showUpiId = showUpiId,
+                                onQrShown = onQrShown,
+                                onRestoreBrightness = onRestoreBrightness,
+                                onDismiss = onDismiss
+                            )
+                        }
 
-                    QuickUpiUiState.WhatsApp -> {
-                        QuickWhatsAppScreen(onDismiss = onDismiss)
-                    }
+                        QuickUpiUiState.WhatsApp -> {
+                            QuickChatScreen(onDismiss = onDismiss)
+                        }
 
-                    QuickUpiUiState.Instagram -> {
-                        QuickInstaScreen(onDismiss = onDismiss)
+                        QuickUpiUiState.Instagram -> {
+                            QuickInstaScreen(onDismiss = onDismiss)
+                        }
                     }
                 }
 
@@ -329,6 +364,15 @@ fun QuickUpiContent(
             }
         }
     }
+}
+
+private fun QuickUpiUiState.order(): Int = when (this) {
+    QuickUpiUiState.Dashboard -> 0
+    QuickUpiUiState.Setup -> 1
+    is QuickUpiUiState.EnterAmount -> 2
+    is QuickUpiUiState.ShowQr -> 3
+    QuickUpiUiState.WhatsApp -> 4
+    QuickUpiUiState.Instagram -> 5
 }
 
 

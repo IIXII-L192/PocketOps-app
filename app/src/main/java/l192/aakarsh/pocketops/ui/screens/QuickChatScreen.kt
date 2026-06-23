@@ -26,7 +26,7 @@ import androidx.compose.ui.unit.dp
 import l192.aakarsh.pocketops.R
 
 @Composable
-fun QuickWhatsAppScreen(
+fun QuickChatScreen(
     onDismiss: () -> Unit
 ) {
     var phoneNumber by remember { mutableStateOf("") }
@@ -89,5 +89,3 @@ fun QuickWhatsAppScreen(
         }
     }
 }
-
-
