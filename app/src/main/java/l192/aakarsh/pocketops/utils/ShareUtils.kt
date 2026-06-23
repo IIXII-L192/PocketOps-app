@@ -10,6 +10,7 @@ import android.graphics.Rect
 import androidx.core.content.FileProvider
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.toColorInt
+import l192.aakarsh.pocketops.R
 import java.io.File
 import java.io.FileOutputStream
 
@@ -47,68 +48,85 @@ object ShareUtils {
         showUpiId: Boolean
     ): File? {
         try {
-
             val width = 800
-
             val height = 1000
             val bitmap = createBitmap(width, height)
             val canvas = Canvas(bitmap)
 
-
+            // Background
             canvas.drawColor("#f8f9fb".toColorInt())
-
 
             val textPaint = Paint().apply {
                 color = Color.BLACK
-                textSize = 50f
                 isAntiAlias = true
                 textAlign = Paint.Align.CENTER
             }
 
-            var currentY = 100f
+            // Define QR Code geometry (perfectly centered vertically)
+            val qrSize = 520
+            val qrLeft = (width - qrSize) / 2
+            val qrTop = (height - qrSize) / 2
+            val qrDestRect = Rect(qrLeft, qrTop, qrLeft + qrSize, qrTop + qrSize)
+            canvas.drawBitmap(qrBitmap, null, qrDestRect, null)
 
-
-
+            // Draw Payee Name above (if it exists)
             if (name.isNotBlank()) {
-                textPaint.textSize = 60f
+                textPaint.textSize = 36f
                 textPaint.isFakeBoldText = false
                 textPaint.color = "#4c566a".toColorInt()
-                canvas.drawText(name, width / 2f, currentY, textPaint)
-                currentY += 60f
+                canvas.drawText(name, width / 2f, qrTop - 110f, textPaint)
             }
 
-
-
-            val qrSize = 600
-            val qrLeft = (width - qrSize) / 2
-            val qrDestRect =
-                Rect(qrLeft, currentY.toInt(), qrLeft + qrSize, (currentY + qrSize).toInt())
-            canvas.drawBitmap(qrBitmap, null, qrDestRect, null)
-            currentY += qrSize + 120f
-
-
+            // Draw "Scan to Pay" or "₹Amount" exactly above the QR code
             if (amount.isNotBlank()) {
-                textPaint.textSize = 80f
+                textPaint.textSize = 75f
                 textPaint.isFakeBoldText = true
-                textPaint.color = "#4c566a".toColorInt()
-                canvas.drawText("₹$amount", width / 2f, currentY, textPaint)
-                currentY += 60f
+                textPaint.color = "#1a1a1a".toColorInt()
+                canvas.drawText("₹$amount", width / 2f, qrTop - 35f, textPaint)
             } else {
-                textPaint.textSize = 60f
+                textPaint.textSize = 55f
                 textPaint.isFakeBoldText = true
                 textPaint.color = "#4c566a".toColorInt()
-                canvas.drawText("Scan to Pay", width / 2f, currentY, textPaint)
-                currentY += 60f
+                canvas.drawText("Scan to Pay", width / 2f, qrTop - 35f, textPaint)
             }
 
-
+            // Draw raw UPI ID directly below the QR code
             if (showUpiId) {
-                textPaint.textSize = 30f
+                textPaint.textSize = 32f
                 textPaint.isFakeBoldText = false
                 textPaint.color = "#7b88a1".toColorInt()
-                canvas.drawText("UPI ID: $upiId", width / 2f, currentY, textPaint)
+                canvas.drawText(upiId, width / 2f, qrTop + qrSize + 60f, textPaint)
             }
 
+            // Draw footer centered at the bottom: [small logo] PocketOps
+            val logoDrawable = context.getDrawable(R.drawable.ic_pocketops_tile)?.mutate()
+            if (logoDrawable != null) {
+                logoDrawable.setTint("#4c566a".toColorInt())
+                val footerText = "PocketOps"
+                val footerPaint = Paint().apply {
+                    color = "#4c566a".toColorInt()
+                    textSize = 34f
+                    isAntiAlias = true
+                    isFakeBoldText = true
+                }
+                val textWidth = footerPaint.measureText(footerText)
+                val iconSize = 34
+                val gap = 12
+                val totalFooterWidth = iconSize + gap + textWidth
+                val footerLeft = (width - totalFooterWidth) / 2f
+                val footerY = height - 70f
+
+                logoDrawable.setBounds(
+                    footerLeft.toInt(),
+                    (footerY - iconSize).toInt(),
+                    (footerLeft + iconSize).toInt(),
+                    footerY.toInt()
+                )
+                logoDrawable.draw(canvas)
+
+                // Align baseline to middle of the icon
+                canvas.drawText(footerText, footerLeft + iconSize + gap, footerY - 2f, footerPaint)
+            }
 
             val cachePath = File(context.cacheDir, "images")
             cachePath.mkdirs()
@@ -118,12 +136,9 @@ object ShareUtils {
             stream.close()
 
             return file
-
         } catch (e: Exception) {
             e.printStackTrace()
             return null
         }
     }
 }
-
-
