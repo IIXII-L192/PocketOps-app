@@ -1,7 +1,7 @@
 <div align="center">
   <img src="PocketOps.png?v=2.1.0" width="160" style="border-radius: 24%; object-fit: fill; background: transparent;" alt="PocketOps Icon"/>
   
-  # PocketOps ⚡
+  # PocketOps
 
   [![Kotlin](https://img.shields.io/badge/kotlin-2.0.21-purple.svg?style=flat-square&logo=kotlin)](https://kotlinlang.org)
   [![Compose](https://img.shields.io/badge/compose-M3-blue.svg?style=flat-square&logo=jetpackcompose)](https://developer.android.com/jetpack/compose)
