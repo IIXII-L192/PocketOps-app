@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="PocketOps.png" width="160" style="border-radius: 24%; object-fit: fill; background: transparent;" alt="PocketOps Icon"/>
+  <img src="PocketOps.png?v=2.1.0" width="160" style="border-radius: 24%; object-fit: fill; background: transparent;" alt="PocketOps Icon"/>
   
   # PocketOps ⚡
 
@@ -19,9 +19,9 @@
 
 | Menu | Quick UPI | Quick UPI QR |
 |:----:|:---------:|:------------:|
-| <img src="Menu.png" width="200"/> | <img src="QuickUPI.png" width="200"/> | <img src="QuickUPIQR.png" width="200"/> |
+| <img src="Menu.png?v=2.1.0" width="200"/> | <img src="QuickUPI.png?v=2.1.0" width="200"/> | <img src="QuickUPIQR.png?v=2.1.0" width="200"/> |
 | **Quick Chat** | **Quick Insta** | |
-| <img src="QuickChat.png" width="200"/> | <img src="QuickInsta.png" width="200"/> | |
+| <img src="QuickChat.png?v=2.1.0" width="200"/> | <img src="QuickInsta.png?v=2.1.0" width="200"/> | |
 
 ---
 
