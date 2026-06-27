@@ -1,13 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
     <shortcut
-        android:shortcutId="show_qr"
+        android:shortcutId="quick_upi"
         android:enabled="true"
-        android:icon="@drawable/ic_qr_code_2"
-        android:shortcutShortLabel="@string/app_name"
-        android:shortcutLongLabel="@string/shortcut_long_label">
+        android:icon="@drawable/ic_shortcut_upi"
+        android:shortcutShortLabel="@string/shortcut_quick_upi_short"
+        android:shortcutLongLabel="@string/shortcut_quick_upi_long">
         <intent
-            android:action="l192.aakarsh.pocketops.ACTION_SHOW_QR"
+            android:action="l192.aakarsh.pocketops.ACTION_QUICK_UPI"
+            android:targetPackage="l192.aakarsh.pocketops"
+            android:targetClass="l192.aakarsh.pocketops.MainActivity" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="quick_chat"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_chat"
+        android:shortcutShortLabel="@string/shortcut_quick_chat_short"
+        android:shortcutLongLabel="@string/shortcut_quick_chat_long">
+        <intent
+            android:action="l192.aakarsh.pocketops.ACTION_QUICK_CHAT"
+            android:targetPackage="l192.aakarsh.pocketops"
+            android:targetClass="l192.aakarsh.pocketops.MainActivity" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="quick_insta"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_insta"
+        android:shortcutShortLabel="@string/shortcut_quick_insta_short"
+        android:shortcutLongLabel="@string/shortcut_quick_insta_long">
+        <intent
+            android:action="l192.aakarsh.pocketops.ACTION_QUICK_INSTA"
             android:targetPackage="l192.aakarsh.pocketops"
             android:targetClass="l192.aakarsh.pocketops.MainActivity" />
     </shortcut>

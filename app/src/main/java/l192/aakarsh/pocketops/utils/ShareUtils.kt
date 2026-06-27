@@ -49,7 +49,7 @@ object ShareUtils {
     ): File? {
         try {
             val width = 800
-            val height = 1000
+            val height = 1050
             val bitmap = createBitmap(width, height)
             val canvas = Canvas(bitmap)
 
@@ -65,7 +65,7 @@ object ShareUtils {
             // Define QR Code geometry (perfectly centered vertically)
             val qrSize = 520
             val qrLeft = (width - qrSize) / 2
-            val qrTop = (height - qrSize) / 2
+            val qrTop = (height - qrSize) / 2 - 20
             val qrDestRect = Rect(qrLeft, qrTop, qrLeft + qrSize, qrTop + qrSize)
             canvas.drawBitmap(qrBitmap, null, qrDestRect, null)
 
@@ -77,18 +77,11 @@ object ShareUtils {
                 canvas.drawText(name, width / 2f, qrTop - 110f, textPaint)
             }
 
-            // Draw "Scan to Pay" or "₹Amount" exactly above the QR code
-            if (amount.isNotBlank()) {
-                textPaint.textSize = 75f
-                textPaint.isFakeBoldText = true
-                textPaint.color = "#1a1a1a".toColorInt()
-                canvas.drawText("₹$amount", width / 2f, qrTop - 35f, textPaint)
-            } else {
-                textPaint.textSize = 55f
-                textPaint.isFakeBoldText = true
-                textPaint.color = "#4c566a".toColorInt()
-                canvas.drawText("Scan to Pay", width / 2f, qrTop - 35f, textPaint)
-            }
+            // Always draw "Scan to Pay" exactly above the QR code
+            textPaint.textSize = 55f
+            textPaint.isFakeBoldText = true
+            textPaint.color = "#4c566a".toColorInt()
+            canvas.drawText("Scan to Pay", width / 2f, qrTop - 35f, textPaint)
 
             // Draw raw UPI ID directly below the QR code
             if (showUpiId) {
@@ -98,34 +91,25 @@ object ShareUtils {
                 canvas.drawText(upiId, width / 2f, qrTop + qrSize + 60f, textPaint)
             }
 
-            // Draw footer centered at the bottom: [small logo] PocketOps
-            val logoDrawable = context.getDrawable(R.mipmap.ic_launcher)
-            if (logoDrawable != null) {
-                val footerText = "PocketOps"
-                val footerPaint = Paint().apply {
-                    color = "#4c566a".toColorInt()
-                    textSize = 34f
-                    isAntiAlias = true
-                    isFakeBoldText = true
-                }
-                val textWidth = footerPaint.measureText(footerText)
-                val iconSize = 34
-                val gap = 12
-                val totalFooterWidth = iconSize + gap + textWidth
-                val footerLeft = (width - totalFooterWidth) / 2f
-                val footerY = height - 70f
-
-                logoDrawable.setBounds(
-                    footerLeft.toInt(),
-                    (footerY - iconSize).toInt(),
-                    (footerLeft + iconSize).toInt(),
-                    footerY.toInt()
-                )
-                logoDrawable.draw(canvas)
-
-                // Align baseline to middle of the icon
-                canvas.drawText(footerText, footerLeft + iconSize + gap, footerY - 2f, footerPaint)
+            // If amount is set, draw it below the UPI ID
+            if (amount.isNotBlank()) {
+                textPaint.textSize = 75f
+                textPaint.isFakeBoldText = true
+                textPaint.color = "#1a1a1a".toColorInt()
+                canvas.drawText("₹$amount", width / 2f, qrTop + qrSize + 150f, textPaint)
             }
+
+            // Draw centered footer text at the bottom: PocketOps (without logo)
+            val footerText = "PocketOps"
+            val footerPaint = Paint().apply {
+                color = "#4c566a".toColorInt()
+                textSize = 34f
+                isAntiAlias = true
+                isFakeBoldText = true
+                textAlign = Paint.Align.CENTER
+            }
+            val footerY = height - 70f
+            canvas.drawText(footerText, width / 2f, footerY, footerPaint)
 
             val cachePath = File(context.cacheDir, "images")
             cachePath.mkdirs()

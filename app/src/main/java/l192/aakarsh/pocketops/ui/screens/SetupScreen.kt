@@ -10,20 +10,27 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -32,217 +39,324 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import l192.aakarsh.pocketops.R
 
-
 @SuppressLint("MutableCollectionMutableState")
 @Composable
+@OptIn(ExperimentalMaterial3Api::class)
 fun SetupScreen(
     upiIds: List<String>,
-    onSaveUpiIds: (List<String>, String) -> Unit,
+    defaultUpiId: String?,
+    onSaveUpiIds: (List<String>, String, String) -> Unit,
 ) {
-
     val currentUpiIds = remember(upiIds) { upiIds.toMutableStateList() }
     var newUpiInput by remember { mutableStateOf("") }
     var newPayeeNameInput by remember { mutableStateOf("") }
     var isExpanded by remember { mutableStateOf(false) }
-
-
     var showDeleteDialog by remember { mutableStateOf(false) }
     var pendingDeleteIndex by remember { mutableStateOf(-1) }
-
-    Text("Setup your UPI ID", style = MaterialTheme.typography.bodyLarge)
-    Spacer(modifier = Modifier.height(16.dp))
-
-
-    OutlinedCard(
-        modifier = Modifier.fillMaxWidth(), colors = CardDefaults.outlinedCardColors(
-            containerColor = MaterialTheme.colorScheme.surface,
+    
+    // Default selection state
+    var selectedDefaultUpiId by remember(defaultUpiId, currentUpiIds) {
+        mutableStateOf(
+            if (!defaultUpiId.isNullOrBlank() && currentUpiIds.contains(defaultUpiId)) defaultUpiId 
+            else currentUpiIds.firstOrNull() ?: ""
         )
-    ) {
-        Column {
+    }
 
-            Row(
+    var dropdownExpanded by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Text(
+            "Setup your UPI ID",
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        // Top-most element: Default UPI ID dropdown (only shown if multiple UPI IDs are connected)
+        if (currentUpiIds.size > 1) {
+            ExposedDropdownMenuBox(
+                expanded = dropdownExpanded,
+                onExpandedChange = { dropdownExpanded = !dropdownExpanded },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { isExpanded = !isExpanded }
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                    .clip(RoundedCornerShape(12.dp))
             ) {
-                Text(
-                    "${currentUpiIds.size}/3 UPI IDs added",
-                    style = MaterialTheme.typography.titleMedium
+                TextField(
+                    value = selectedDefaultUpiId,
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Default UPI ID") },
+                    trailingIcon = {
+                        Icon(
+                            painter = if (dropdownExpanded) painterResource(R.drawable.ic_keyboard_arrow_up)
+                            else painterResource(R.drawable.ic_keyboard_arrow_down),
+                            contentDescription = if (dropdownExpanded) "Collapse" else "Expand"
+                        )
+                    },
+                    leadingIcon = {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_upi_pay),
+                            contentDescription = "Default UPI ID"
+                        )
+                    },
+                    colors = ExposedDropdownMenuDefaults.textFieldColors(),
+                    modifier = Modifier
+                        .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, true)
+                        .fillMaxWidth()
                 )
-                Icon(
-                    painter = if (isExpanded) painterResource(R.drawable.ic_keyboard_arrow_up) else painterResource(
-                        R.drawable.ic_keyboard_arrow_down
-                    ), contentDescription = if (isExpanded) "Collapse" else "Expand"
-                )
-            }
-
-
-            if (isExpanded && currentUpiIds.isNotEmpty()) {
-                 Column(
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ExposedDropdownMenu(
+                    expanded = dropdownExpanded,
+                    onDismissRequest = { dropdownExpanded = false }
                 ) {
-
-                    currentUpiIds.forEachIndexed { index, id ->
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 4.dp)
-                        ) {
-                            Text(
-                                id,
-                                style = MaterialTheme.typography.bodyLarge,
-                                modifier = Modifier.weight(1f)
-                            )
-                            IconButton(
-                                onClick = {
-                                    if (currentUpiIds.size == 1) {
-                                        pendingDeleteIndex = index
-                                        showDeleteDialog = true
-                                    } else {
-                                        currentUpiIds.removeAt(index)
-                                    }
-                                }, modifier = Modifier.size(24.dp)
-                            ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.ic_delete),
-                                    contentDescription = "Remove",
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        }
+                    currentUpiIds.forEach { id ->
+                        DropdownMenuItem(
+                            text = { Text(text = id) },
+                            onClick = {
+                                selectedDefaultUpiId = id
+                                dropdownExpanded = false
+                            },
+                            contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                        )
                     }
                 }
             }
         }
-    }
 
-    if (showDeleteDialog) {
-        AlertDialog(
-            onDismissRequest = { showDeleteDialog = false },
-            title = { Text("Delete UPI ID?") },
-            text = { Text("Are you sure you want to delete the last UPI ID?") },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        if (pendingDeleteIndex != -1 && pendingDeleteIndex < currentUpiIds.size) {
-                            currentUpiIds.removeAt(pendingDeleteIndex)
+        // Saved UPI IDs card
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+            )
+        ) {
+            Column {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { isExpanded = !isExpanded }
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        "${currentUpiIds.size}/3 UPI IDs added",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Icon(
+                        painter = if (isExpanded) painterResource(R.drawable.ic_keyboard_arrow_up)
+                        else painterResource(R.drawable.ic_keyboard_arrow_down),
+                        contentDescription = if (isExpanded) "Collapse" else "Expand",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                if (isExpanded && currentUpiIds.isNotEmpty()) {
+                    Column(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        currentUpiIds.forEachIndexed { index, id ->
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 4.dp)
+                            ) {
+                                Text(
+                                    id,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .padding(start = 12.dp)
+                                )
+                                IconButton(
+                                    onClick = {
+                                        pendingDeleteIndex = index
+                                        showDeleteDialog = true
+                                    },
+                                    modifier = Modifier.size(32.dp)
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.ic_delete),
+                                        contentDescription = "Remove",
+                                        tint = MaterialTheme.colorScheme.error.copy(alpha = 0.7f),
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                }
+                            }
                         }
-                        showDeleteDialog = false
-                        pendingDeleteIndex = -1
+                        Spacer(modifier = Modifier.height(4.dp))
                     }
-                ) { Text("Delete", color = MaterialTheme.colorScheme.error) }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) { Text("Cancel") }
-            }
-        )
-    }
-
-    Spacer(modifier = Modifier.height(16.dp))
-
-    if (currentUpiIds.size < 3) {
-        val isUpiValid = newUpiInput.matches(Regex("^[a-zA-Z0-9.\\-_]+@[a-zA-Z]+$"))
-        val isDuplicate = currentUpiIds.contains(newUpiInput)
-
-
-        val addId = {
-            if (isUpiValid && !isDuplicate && newUpiInput.isNotEmpty()) {
-                currentUpiIds.add(newUpiInput)
-                newUpiInput = ""
+                }
             }
         }
 
+        // Delete confirmation dialog
+        if (showDeleteDialog && pendingDeleteIndex != -1 && pendingDeleteIndex < currentUpiIds.size) {
+            val upiToBeRemoved = currentUpiIds[pendingDeleteIndex]
+            AlertDialog(
+                onDismissRequest = { showDeleteDialog = false },
+                title = { Text("Remove UPI ID?") },
+                text = { Text("Are you sure you want to remove $upiToBeRemoved from PocketOps?") },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            val removedId = currentUpiIds[pendingDeleteIndex]
+                            currentUpiIds.removeAt(pendingDeleteIndex)
+                            if (selectedDefaultUpiId == removedId) {
+                                selectedDefaultUpiId = currentUpiIds.firstOrNull() ?: ""
+                            }
+                            showDeleteDialog = false
+                            pendingDeleteIndex = -1
+                        }
+                    ) { Text("Remove", color = MaterialTheme.colorScheme.error) }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = { 
+                            showDeleteDialog = false
+                            pendingDeleteIndex = -1
+                        }
+                    ) { Text("Cancel") }
+                }
+            )
+        }
+
+        // Add new UPI ID
+        if (currentUpiIds.size < 3) {
+            val isUpiValid = newUpiInput.matches(Regex("^[a-zA-Z0-9.\\-_]+@[a-zA-Z]+$"))
+            val isDuplicate = currentUpiIds.contains(newUpiInput)
+
+            val addId = {
+                if (isUpiValid && !isDuplicate && newUpiInput.isNotEmpty()) {
+                    currentUpiIds.add(newUpiInput)
+                    if (selectedDefaultUpiId.isEmpty()) {
+                        selectedDefaultUpiId = newUpiInput
+                    }
+                    newUpiInput = ""
+                }
+            }
+
+            Column {
+                OutlinedTextField(
+                    value = newUpiInput,
+                    onValueChange = { newUpiInput = it },
+                    label = { Text("UPI ID", maxLines = 1) },
+                    placeholder = { Text("anshujaat@nyes") },
+                    shape = RoundedCornerShape(16.dp),
+                    leadingIcon = {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_upi_pay),
+                            contentDescription = "UPI ID"
+                        )
+                    },
+                    trailingIcon = {
+                        if (newUpiInput.isNotEmpty() && isUpiValid && !isDuplicate) {
+                            IconButton(onClick = addId) {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_add_upi_id),
+                                    contentDescription = "Save ID",
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
+                    },
+                    isError = (!isUpiValid && newUpiInput.isNotEmpty()) || isDuplicate,
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                    keyboardActions = KeyboardActions(onDone = { addId() })
+                )
+
+                if (!isUpiValid && newUpiInput.isNotEmpty()) {
+                    Text(
+                        "Invalid UPI ID format (name@bank)",
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+                    )
+                }
+                if (isDuplicate) {
+                    Text(
+                        "UPI ID already added",
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+                    )
+                }
+            }
+        } else {
+            Text(
+                "Maximum 3 UPI IDs allowed.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
+        // Name input
         OutlinedTextField(
-            value = newUpiInput,
-            onValueChange = { newUpiInput = it },
-            label = { Text("Enter UPI ID") },
+            value = newPayeeNameInput,
+            onValueChange = { newPayeeNameInput = it },
+            label = { Text("Name (Optional)") },
+            shape = RoundedCornerShape(16.dp),
             leadingIcon = {
                 Icon(
-                    painter = painterResource(R.drawable.ic_upi_pay), contentDescription = "UPI ID"
+                    painter = painterResource(R.drawable.ic_person),
+                    contentDescription = "Payee Name"
                 )
             },
             trailingIcon = {
-
-                if (newUpiInput.isNotEmpty() && isUpiValid && !isDuplicate) {
-                    IconButton(onClick = addId) {
+                if (newPayeeNameInput.isNotEmpty()) {
+                    IconButton(onClick = { newPayeeNameInput = "" }) {
                         Icon(
-                            painter = painterResource(R.drawable.ic_add_upi_id), // Save/Check icon
-                            contentDescription = "Save ID", tint = MaterialTheme.colorScheme.primary
+                            painter = painterResource(R.drawable.ic_close),
+                            contentDescription = "Clear"
                         )
                     }
                 }
             },
-            isError = (!isUpiValid && newUpiInput.isNotEmpty()) || isDuplicate,
             singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-            keyboardActions = KeyboardActions(onDone = { addId() })
+            modifier = Modifier.fillMaxWidth()
         )
-        if (!isUpiValid && newUpiInput.isNotEmpty()) {
-            Text(
-                "Invalid UPI ID Format (name@bank)",
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.padding(start = 16.dp, top = 2.dp)
-            )
-        }
-        if (isDuplicate) {
-            Text(
-                "UPI ID already added",
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.padding(start = 16.dp, top = 2.dp)
-            )
-        }
-    } else {
-        Text(
-            "Maximum 3 UPI IDs allowed.",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.secondary
-        )
-    }
 
-    Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
-
-    OutlinedTextField(
-        value = newPayeeNameInput,
-        onValueChange = { newPayeeNameInput = it },
-        label = { Text("Name (Optional)") },
-        leadingIcon = {
-            Icon(
-                painter = painterResource(R.drawable.ic_person), contentDescription = "Payee Name"
-            )
-        },
-        trailingIcon = {
-            if (newPayeeNameInput.isNotEmpty()) {
-                IconButton(onClick = { newPayeeNameInput = "" }) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_close), contentDescription = "Clear"
-                    )
+        // Save button
+        Button(
+            onClick = {
+                val finalDefault = if (selectedDefaultUpiId.isNotEmpty() && currentUpiIds.contains(selectedDefaultUpiId)) {
+                    selectedDefaultUpiId
+                } else {
+                    currentUpiIds.firstOrNull() ?: ""
                 }
-            }
-        },
-        singleLine = true,
-        modifier = Modifier.fillMaxWidth()
-    )
-    Spacer(modifier = Modifier.height(16.dp))
-
-    Button(
-        onClick = { onSaveUpiIds(currentUpiIds, newPayeeNameInput) },
-        enabled = currentUpiIds.isNotEmpty(),
-        modifier = Modifier.fillMaxWidth()
-    ) { Text("Save & Continue") }
+                onSaveUpiIds(currentUpiIds, newPayeeNameInput, finalDefault)
+            },
+            enabled = currentUpiIds.isNotEmpty(),
+            shape = RoundedCornerShape(16.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp)
+        ) {
+            Text(
+                "Save & Continue",
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
+    }
 }
-
-

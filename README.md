@@ -17,9 +17,11 @@
 
 ## 📱 Screenshots
 
-| Menu | Quick UPI | Quick Chat | Quick Insta |
-|:----:|:---------:|:--------------:|:-----------:|
-| <img src="PocketOps_1.png" width="200"/> | <img src="PocketOps_2.png" width="200"/> | <img src="PocketOps_3.png" width="200"/> | <img src="PocketOps_4.png" width="200"/> |
+| Menu | Quick UPI | Quick UPI QR |
+|:----:|:---------:|:------------:|
+| <img src="Menu.png" width="200"/> | <img src="QuickUPI.png" width="200"/> | <img src="QuickUPIQR.png" width="200"/> |
+| **Quick Chat** | **Quick Insta** | |
+| <img src="QuickChat.png" width="200"/> | <img src="QuickInsta.png" width="200"/> | |
 
 ---
 
@@ -29,14 +31,14 @@
     *   Generate dynamic or static payment QR codes locally.
     *   Smart recent-amount chips for fast inputs.
     *   Auto-brightness boost to 100% while showing the QR code for instant scanner detection (restores previous brightness on close).
-    *   Supports saving and switching between multiple UPI IDs.
+    *   Supports saving, managing, and switching between multiple UPI IDs.
 *   **💬 Quick Chat**: 
     *   Start chat windows directly with any phone number without saving it to your contacts list.
 *   **📸 Quick Insta**: 
-    *   Type an Instagram username (auto-cleans leading `@` symbols) and open their profile directly in the official app or browser.
+    *   Type an Instagram username (auto-cleans leading `@` symbols) and open their profile directly in the official app or browser, or use Direct Search.
 *   **⚙️ System Integrations**:
     *   *Quick Settings Tile*: Pull down from the notification shade to access the PocketOps utility drawer instantly from anywhere.
-    *   *Homescreen Widget*: Pin an interactive shortcut widget to launch utilities in one tap.
+    *   *Homescreen Launcher Shortcuts*: Long-press the launcher icon to jump straight into UPI, Chat, or Instagram.
 
 ---
 

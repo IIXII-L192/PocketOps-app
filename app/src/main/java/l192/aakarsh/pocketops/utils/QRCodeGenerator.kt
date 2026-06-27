@@ -45,31 +45,16 @@ object QRCodeGenerator {
 
         val dotSize = matrixWidth.toFloat() / bitMatrix.width.toFloat()
 
-        // Size of finder patterns in QR modules (typically 7x7 at the corners)
-        val finderSize = 8
-
         for (y in 0 until matrixHeight) {
             for (x in 0 until matrixWidth) {
                 if (bitMatrix[x, y]) {
-                    // Check if it's part of the finder patterns (top-left, top-right, bottom-left)
-                    val isFinder = (x < finderSize && y < finderSize) || // Top-left
-                                   (x >= bitMatrix.width - finderSize && y < finderSize) || // Top-right
-                                   (x < finderSize && y >= bitMatrix.height - finderSize) // Bottom-left
-                    
                     val left = x * dotSize
                     val top = y * dotSize
                     val right = left + dotSize
                     val bottom = top + dotSize
 
-                    if (isFinder) {
-                        // Draw solid squares for finder patterns to keep scanner reliability extremely high
-                        canvas.drawRect(left, top, right, bottom, paint)
-                    } else {
-                        // Draw round dots for the data modules
-                        val centerX = left + dotSize / 2f
-                        val centerY = top + dotSize / 2f
-                        canvas.drawCircle(centerX, centerY, dotSize * 0.42f, paint)
-                    }
+                    // Draw solid square modules so QR lines are perfectly solid black
+                    canvas.drawRect(left, top, right, bottom, paint)
                 }
             }
         }
@@ -105,7 +90,7 @@ object QRCodeGenerator {
                 logoBottom.toFloat()
             )
             val innerCardPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                color = Color.parseColor("#1565C0") // Deep Blue primary color
+                color = Color.parseColor("#5170FF") // Requested blue color
                 style = Paint.Style.FILL
             }
             canvas.drawRoundRect(innerCardRect, borderSize.toFloat(), borderSize.toFloat(), innerCardPaint)

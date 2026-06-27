@@ -18,3 +18,7 @@ local.properties
 *.jks
 *.keystore
 keystore.properties
+
+# Release packages and notes
+release/*.apk
+Release*Notes.md

@@ -3,8 +3,14 @@
     <string name="app_name">PocketOps</string>
     <string name="quick_tile_title">PocketOps</string>
     <string name="quick_tile_subtitle">Tap to open tools</string>
-    <string name="upi_id">anshujaat@nyes</string>
-    <string name="upi_name">Aakarsh</string>
-    <string name="upi_description">Support PocketOps Development</string>
     <string name="shortcut_long_label">Show QR Code</string>
+    
+    <string name="shortcut_quick_upi_short">Quick UPI</string>
+    <string name="shortcut_quick_upi_long">Open Quick UPI QR Generator</string>
+    
+    <string name="shortcut_quick_chat_short">Quick Chat</string>
+    <string name="shortcut_quick_chat_long">Direct WhatsApp Chat</string>
+    
+    <string name="shortcut_quick_insta_short">Quick Insta</string>
+    <string name="shortcut_quick_insta_long">Instant Profile Search</string>
 </resources>
