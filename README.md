@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="PocketOps.png" width="160" style="border-radius: 24%; object-fit: fill; background: transparent;" alt="PocketOps Icon"/>
+  <img src="PocketObps.png" width="160" style="border-radius: 24%; object-fit: fill; background: transparent;" alt="PocketOps Icon"/>
   
   # PocketOps ⚡
 
