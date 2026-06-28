@@ -6,7 +6,7 @@
   [![Kotlin](https://img.shields.io/badge/kotlin-2.0.21-purple.svg?style=flat-square&logo=kotlin)](https://kotlinlang.org)
   [![Compose](https://img.shields.io/badge/compose-M3-blue.svg?style=flat-square&logo=jetpackcompose)](https://developer.android.com/jetpack/compose)
   [![Android](https://img.shields.io/badge/Android-SDK%2037-green.svg?style=flat-square&logo=android)](https://developer.android.com)
-  [![License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](LICENSE)
+  [![License](https://img.shields.io/badge/license-Custom-orange.svg?style=flat-square)](LICENSE)
 
   **Stop fumbling. Start executing.**
 
@@ -72,4 +72,4 @@ PocketOps is built to adapt dynamically to your workflow. The entire app adjusts
 
 ## 👨‍💻 Developer & License
 *   Maintained by **Aakarsh (L192)**.
-*   Licensed under the [MIT License](LICENSE).
+*   Licensed under the [Custom Open Source License](LICENSE).
