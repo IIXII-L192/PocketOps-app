@@ -32,6 +32,42 @@
 
 ---
 
+## 🗺️ Application Navigation Flow
+
+```mermaid
+graph TD
+    %% Styling definitions
+    classDef main fill:#d4ebf2,stroke:#1a5f7a,stroke-width:2px,color:#000;
+    classDef green fill:#d1e7dd,stroke:#0f5132,stroke-width:2px,color:#000;
+    classDef pink fill:#f8d7da,stroke:#842029,stroke-width:2px,color:#000;
+    classDef settings fill:#e2e3e5,stroke:#41464b,stroke-width:2px,color:#000;
+    
+    Start([📱 App Launch]) --> Entry{Shortcut / QS Tile?}
+    
+    Entry -->|None| Dash[🏠 Dashboard Screen]:::main
+    Entry -->|Quick Collect| Collect[⚡ UPI / PayPal Quick Collect]:::main
+    Entry -->|Quick Chat| Chat[💬 WhatsApp Quick Chat]:::green
+    Entry -->|Quick Insta| Insta[📸 Instagram Quick Insta]:::pink
+    
+    Dash -->|Select Tool| ToolSelect{Select Tool}
+    ToolSelect -->|UPI / PayPal| Collect
+    ToolSelect -->|WhatsApp| Chat
+    ToolSelect -->|Instagram| Insta
+    
+    Collect -->|Toggle Payment Mode| Collect
+    Collect -->|Manage IDs| Setup[⚙️ Manage Setup Screen]:::settings
+    
+    %% Navigation Back Stack Logic
+    subgraph Navigation Stack [LIFO Backstack Navigation]
+        Collect -->|Back Press| Dash
+        Chat -->|Back Press| Dash
+        Insta -->|Back Press| Dash
+        Setup -->|Back Press| Collect
+    end
+```
+
+---
+
 ## 🚀 Key Features
 
 *   **⚡ Quick Collect (UPI / PayPal)**
