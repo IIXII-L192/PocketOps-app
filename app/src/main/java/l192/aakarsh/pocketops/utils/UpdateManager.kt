@@ -90,7 +90,7 @@ object UpdateManager {
                 }
                 val currentVersionName = packageInfo.versionName ?: ""
 
-                val url = URL("https://raw.githubusercontent.com/IIXII-L192/PocketOps-app/main/update.json")
+                val url = URL("https://raw.githubusercontent.com/IIXII-L192/PocketOps-app/main/update.json?t=${System.currentTimeMillis()}")
                 val connection = url.openConnection() as HttpURLConnection
                 connection.connectTimeout = 5000
                 connection.readTimeout = 5000

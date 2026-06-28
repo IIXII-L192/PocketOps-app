@@ -47,6 +47,11 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        l192.aakarsh.pocketops.utils.UpdateManager.checkForUpdates(this)
+    }
+
     private fun maxBrightness() {
         val layoutParams = window.attributes
         layoutParams.screenBrightness = 1.0f
