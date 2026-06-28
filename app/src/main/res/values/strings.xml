@@ -5,8 +5,8 @@
     <string name="quick_tile_subtitle">Tap to open tools</string>
     <string name="shortcut_long_label">Show QR Code</string>
     
-    <string name="shortcut_quick_upi_short">Quick UPI</string>
-    <string name="shortcut_quick_upi_long">Open Quick UPI QR Generator</string>
+    <string name="shortcut_quick_upi_short">Quick Collect</string>
+    <string name="shortcut_quick_upi_long">Open Quick Collect QR Generator</string>
     
     <string name="shortcut_quick_chat_short">Quick Chat</string>
     <string name="shortcut_quick_chat_long">Direct WhatsApp Chat</string>
