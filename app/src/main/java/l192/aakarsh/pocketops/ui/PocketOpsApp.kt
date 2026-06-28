@@ -11,6 +11,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,6 +25,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
@@ -52,9 +54,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.Dispatchers
 import l192.aakarsh.pocketops.R
 import l192.aakarsh.pocketops.data.UserStore
 import l192.aakarsh.pocketops.ui.screens.DashboardScreen
@@ -84,6 +86,8 @@ sealed interface PocketOpsUiState {
 fun PocketOpsApp(
     userStore: UserStore,
     shortcutAction: String? = null,
+    themeMode: String = "SYSTEM",
+    onChangeThemeMode: (String) -> Unit = {},
     onQrShown: () -> Unit = {},
     onRestoreBrightness: () -> Unit = {},
     onDismiss: () -> Unit = {}
@@ -128,6 +132,8 @@ fun PocketOpsApp(
         upiIds = savedUpiIds,
         defaultUpiId = savedDefaultUpiId,
         showUpiId = showUpiId,
+        themeMode = themeMode,
+        onChangeThemeMode = onChangeThemeMode,
         onSaveUpiIds = { upiIds, name, defaultId ->
             scope.launch {
                 userStore.saveUpiIds(upiIds)
@@ -195,6 +201,8 @@ fun PocketOpsContent(
     upiIds: List<String> = emptyList(),
     defaultUpiId: String? = null,
     showUpiId: Boolean = true,
+    themeMode: String = "SYSTEM",
+    onChangeThemeMode: (String) -> Unit = {},
     onSaveUpiIds: (List<String>, String, String) -> Unit,
     onGenerateQr: (String, String, String) -> Unit,
     onManageUpiIds: () -> Unit,
@@ -247,6 +255,11 @@ fun PocketOpsContent(
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
+                        } else {
+                            ThemeSwitcherButton(
+                                themeMode = themeMode,
+                                onChangeThemeMode = onChangeThemeMode
+                            )
                         }
                     }
 
@@ -349,6 +362,48 @@ fun PocketOpsContent(
 }
 
 @Composable
+fun ThemeSwitcherButton(
+    themeMode: String,
+    onChangeThemeMode: (String) -> Unit
+) {
+    val nextMode = when (themeMode) {
+        "SYSTEM" -> "LIGHT"
+        "LIGHT" -> "DARK"
+        else -> "SYSTEM"
+    }
+
+    val iconRes = when (themeMode) {
+        "LIGHT" -> R.drawable.ic_sun
+        "DARK" -> R.drawable.ic_moon
+        else -> R.drawable.ic_phone
+    }
+
+    IconButton(
+        onClick = { onChangeThemeMode(nextMode) },
+        modifier = Modifier
+            .size(36.dp)
+            .clip(CircleShape)
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+    ) {
+        AnimatedContent(
+            targetState = iconRes,
+            transitionSpec = {
+                fadeIn(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)) togetherWith
+                        fadeOut(animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
+            },
+            label = "themeIconTransition"
+        ) { targetIcon ->
+            Icon(
+                painter = painterResource(targetIcon),
+                contentDescription = "Switch Theme Mode",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(18.dp)
+            )
+        }
+    }
+}
+
+@Composable
 fun UpdateTag() {
     val context = LocalContext.current
     val currentVersionName = remember {
@@ -356,7 +411,7 @@ fun UpdateTag() {
             val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
             "v${packageInfo.versionName}"
         } catch (e: Exception) {
-            "v2.1.5"
+            "v2.1.7"
         }
     }
 

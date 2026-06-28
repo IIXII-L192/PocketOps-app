@@ -21,6 +21,7 @@ class UserStore(private val context: Context) {
         val PAYEE_NAME_KEY = stringPreferencesKey("payee_name")
         val RECENT_AMOUNTS_KEY = stringPreferencesKey("recent_amounts")
         val SHOW_UPI_ID_KEY = booleanPreferencesKey("show_upi_id")
+        val THEME_MODE_KEY = stringPreferencesKey("theme_mode")
     }
 
     val upiIds: Flow<List<String>> = context.dataStore.data.map { preferences ->
@@ -50,6 +51,10 @@ class UserStore(private val context: Context) {
 
     val showUpiId: Flow<Boolean> =
         context.dataStore.data.map { preferences -> preferences[SHOW_UPI_ID_KEY] ?: true }
+
+    val themeMode: Flow<String> = context.dataStore.data.map { preferences ->
+        preferences[THEME_MODE_KEY] ?: "SYSTEM"
+    }
 
     suspend fun saveUpiIds(ids: List<String>) {
         context.dataStore.edit { preferences ->
@@ -83,6 +88,12 @@ class UserStore(private val context: Context) {
 
     suspend fun saveShowUpiId(show: Boolean) {
         context.dataStore.edit { preferences -> preferences[SHOW_UPI_ID_KEY] = show }
+    }
+
+    suspend fun saveThemeMode(mode: String) {
+        context.dataStore.edit { preferences ->
+            preferences[THEME_MODE_KEY] = mode
+        }
     }
 
     suspend fun saveRecentAmount(amount: String) {
