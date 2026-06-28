@@ -27,6 +27,17 @@ You may NOT Publish or Distribute any Derivative work unless it meets the requir
 - "Major Functional Changes" require that new features and functional modifications constitute at least 30% of the entire codebase and functionality of the project.
 - Bug fixes and refactoring DO NOT count toward the 30% major change threshold. Only entirely new features or substantial functional expansions qualify.
 
-5. NO WARRANTY
+5. SHARE-ALIKE AND OPEN SOURCE FORCE (COPYLEFT)
+If you meet the 30% Major Functional Changes threshold and choose to Publish or Distribute a Derivative work, you are legally obligated to:
+- Keep the entire source code of your Derivative work fully public and open-source. You cannot close the source code, sell it privately, or hide your modifications.
+- Distribute your Derivative work under this exact same license (or a compatible GPL-3.0 license), ensuring that any downstream users have the same rights and restrictions.
+
+6. PROTECTION OF AUTHORSHIP
+Any permitted Derivative work must:
+- Retain all original copyright notices, credits, and trademarks pointing to Aakarsh (L192).
+- Prominently state inside the application and its repository that it is a modified version of PocketOps, including a clear changelog stating what changes were made.
+
+7. NO WARRANTY
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
