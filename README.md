@@ -1,75 +1,100 @@
-<div align="center">
-  <img src="PocketOps.png?v=2.1.0" width="160" style="border-radius: 24%; object-fit: fill; background: transparent;" alt="PocketOps Icon"/>
-  
-  # PocketOps
+<!-- Banner Header -->
+<p align="center">
+  <img src="PocketOps.png?v=2.1.0" width="140" style="border-radius: 22%; box-shadow: 0px 8px 24px rgba(0,0,0,0.15);" alt="PocketOps Icon"/>
+</p>
 
-  [![Kotlin](https://img.shields.io/badge/kotlin-2.0.21-purple.svg?style=flat-square&logo=kotlin)](https://kotlinlang.org)
-  [![Compose](https://img.shields.io/badge/compose-M3-blue.svg?style=flat-square&logo=jetpackcompose)](https://developer.android.com/jetpack/compose)
-  [![Android](https://img.shields.io/badge/Android-SDK%2037-green.svg?style=flat-square&logo=android)](https://developer.android.com)
-  [![License](https://img.shields.io/badge/license-Custom-orange.svg?style=flat-square)](LICENSE)
+<h1 align="center">PocketOps</h1>
 
-  **Stop fumbling. Start executing.**
+<p align="center">
+  <strong>Stop fumbling. Start executing.</strong>
+</p>
 
-  PocketOps is a sleek, unified, offline-first utility dashboard for Android. Built with Material 3 Expressive guidelines, it gives you instant micro-actions directly from your launcher screen or quick settings drawer: instantly generate UPI payment QR codes with automatic screen brightness boost, launch direct WhatsApp chats without saving numbers to your contacts list, and open Instagram profiles directly by username.
-</div>
+<p align="center">
+  <a href="https://kotlinlang.org"><img src="https://img.shields.io/badge/Kotlin-2.0.21-purple.svg?style=for-the-badge&logo=kotlin" alt="Kotlin"/></a>
+  <a href="https://developer.android.com/jetpack/compose"><img src="https://img.shields.io/badge/Compose-M3%20Expressive-blue.svg?style=for-the-badge&logo=jetpackcompose" alt="Compose M3"/></a>
+  <a href="https://developer.android.com"><img src="https://img.shields.io/badge/Android-SDK%2037-green.svg?style=for-the-badge&logo=android" alt="Android SDK"/></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-Custom%20Open%20Source-orange.svg?style=for-the-badge" alt="License"/></a>
+</p>
+
+<p align="center">
+  PocketOps is a sleek, unified, offline-first utility dashboard for Android. Built with Jetpack Compose following Material 3 Expressive guidelines, it gives you instant micro-actions directly from your launcher screen, homescreen widget, or quick settings drawer.
+</p>
 
 ---
 
-## 📱 Screenshots
+## 📱 Interactive Flow
 
-| Menu | Quick UPI | Quick UPI QR |
-|:----:|:---------:|:------------:|
-| <img src="Menu.png?v=2.1.0" width="200"/> | <img src="QuickUPI.png?v=2.1.0" width="200"/> | <img src="QuickUPIQR.png?v=2.1.0" width="200"/> |
-| **Quick Chat** | **Quick Insta** | |
-| <img src="QuickChat.png?v=2.1.0" width="200"/> | <img src="QuickInsta.png?v=2.1.0" width="200"/> | |
+```mermaid
+graph TD
+    Start([Launcher Shortcut / QS Tile]) --> Menu{PocketOps Drawer}
+    Menu -->|UPI / PayPal Toggle| Collect[Quick Collect]
+    Menu -->|Direct Chat| Chat[Quick Chat]
+    Menu -->|Open Username| Insta[Quick Insta]
+    
+    Collect -->|Switch Mode| Collect
+    Collect -->|Back Key| Menu
+    Chat -->|Back Key| Menu
+    Insta -->|Back Key| Menu
+```
 
 ---
 
 ## 🚀 Key Features
 
-*   **⚡ Quick UPI (UPI Feature)**: 
+*   **⚡ Quick Collect (UPI / PayPal)**
     *   Generate dynamic or static payment QR codes locally.
     *   Smart recent-amount chips for fast inputs.
-    *   Auto-brightness boost to 100% while showing the QR code for instant scanner detection (restores previous brightness on close).
-    *   Supports saving, managing, and switching between multiple UPI IDs.
-*   **💬 Quick Chat**: 
+    *   **Auto-brightness boost** to 100% while showing the QR code for instant scanner detection (restores previous brightness on close).
+    *   Supports saving, managing, and switching between multiple payment IDs.
+*   **💬 Quick Chat**
     *   Start chat windows directly with any phone number without saving it to your contacts list.
-*   **📸 Quick Insta**: 
+*   **📸 Quick Insta**
     *   Type an Instagram username (auto-cleans leading `@` symbols) and open their profile directly in the official app or browser, or use Direct Search.
-*   **⚙️ System Integrations**:
-    *   *Quick Settings Tile*: Pull down from the notification shade to access the PocketOps utility drawer instantly from anywhere.
-    *   *Homescreen Launcher Shortcuts*: Long-press the launcher icon to jump straight into UPI, Chat, or Instagram.
+*   **⚙️ System Integrations**
+    *   *Quick Settings Tile*: Access the PocketOps utility drawer instantly from anywhere.
+    *   *Launcher Shortcuts*: Long-press the launcher icon to jump straight into UPI, Chat, or Instagram.
 
 ---
 
 ## 🎨 Expressive Theme System
 
-PocketOps is built to adapt dynamically to your workflow. The entire app adjusts its color palette contextually depending on which tool is active:
-*   🟢 **Green Theme**: Activates when Quick Chat is selected.
-*   🌸 **Pink Theme**: Activates when Quick Instagram is selected.
-*   🔹 **Blue Theme**: Activates when Quick UPI is selected.
+PocketOps adapts contextually to your workflow. The entire interface shifts its color palette depending on which tool is active:
+*   🟢 **Emerald Green Theme**: Activates when Quick Chat is selected.
+*   🌸 **Expressive Pink Theme**: Activates when Quick Instagram is selected.
+*   🔹 **Dynamic Blue Theme**: Activates when Quick UPI is selected.
 *   🎨 **Device Theme-Aware**: Fully follows your system's Light/Dark mode settings.
 
 ---
 
-## 🛠️ Tech Stack
+## 🛠️ Tech Stack & Architecture
 
-*   **Language**: Kotlin
-*   **UI Framework**: Jetpack Compose (Material 3 Expressive Design)
-*   **Data Storage**: Jetpack DataStore (Preferences)
-*   **Widgets**: Jetpack Glance (Material 3 Widget support)
-*   **QR Generation**: Local offline generation via ZXing
+- **Language:** Kotlin
+- **UI Framework:** Jetpack Compose (Material 3 Expressive Design)
+- **Data Persistence:** Jetpack DataStore (Preferences)
+- **Widgets:** Jetpack Glance (Material 3 Widget support)
+- **QR Generation:** Local offline generation via ZXing library
+- **Routing:** Custom LIFO `navigationStack` backstack manager with state-aware toggle routing
 
 ---
 
 ## 🔧 Getting Started
 
-1.  Clone or open the project in **Android Studio**.
-2.  Select **`jbr-21`** (Bundled JDK 21) in settings.
-3.  Sync Gradle and run the app on your device.
+1. Clone or open the project in **Android Studio**.
+2. Select **`jbr-21`** (Bundled JDK 21) in your project structure settings.
+3. Sync Gradle and run the app on your device.
 
 ---
 
-## 👨‍💻 Developer & License
-*   Maintained by **Aakarsh (L192)**.
-*   Licensed under the [Custom Open Source License](LICENSE).
+## 📜 License Quick Reference
+
+This project is licensed under the **PocketOps Custom Open Source License**. It is source-available for personal use and inspection, but enforces strict distribution rights.
+
+| Permissions | Requirements | Restrictions |
+| :--- | :--- | :--- |
+| 🟢 **Local Modification**<br>Modify, test, and use the code locally on any personal device. | 🟡 **Authorship Preservation**<br>Any permitted derivatives must retain original credits to Aakarsh (L192). | 🔴 **No Minor Redistribution**<br>Publishing clones with only minor changes (logo, name, packages) is strictly prohibited. |
+| 🟢 **Original Share**<br>Redistribute original code using the same name, logo, and package ID. | 🟡 **Forced Open Source**<br>Permitted forks (≥30% changes) **must** remain open-source under this same license. | 🔴 **No Proprietary Derivatives**<br>You cannot close the source code of any modified versions. |
+
+> [!IMPORTANT]
+> To request custom exceptions or commercial licensing terms, you must request and obtain permission via email exclusively at **192aakarsh@gmail.com**.
+
+*Maintained with ❤️ by **Aakarsh (L192)***.
