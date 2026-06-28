@@ -80,7 +80,7 @@ fun SettingsScreen(
                 onClick = { onChangeThemeMode("DARK") }
             )
         }
-        
+
         // --- Dynamic Colors (Material You) --- Only supported on Android 12+ (API 31+)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             Spacer(modifier = Modifier.height(24.dp))
@@ -118,7 +118,7 @@ fun SettingsScreen(
                     Icon(
                         painter = painterResource(R.drawable.ic_palette),
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(24.dp)
                     )
                     Spacer(modifier = Modifier.width(16.dp))
@@ -127,18 +127,17 @@ fun SettingsScreen(
                             text = "Use Dynamic Palette",
                             style = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = "Coming soon — wallpaper color matching.",
+                            text = "Apply system Material You wallpaper matching engine.",
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
                         )
                     }
                     Switch(
-                        checked = false,
-                        onCheckedChange = null,
-                        enabled = false
+                        checked = dynamicColor,
+                        onCheckedChange = onToggleDynamicColor
                     )
                 }
             }

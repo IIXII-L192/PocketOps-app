@@ -3,6 +3,7 @@ package l192.aakarsh.pocketops.ui.screens
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -41,13 +42,12 @@ fun DashboardScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.fillMaxWidth()
     ) {
-        // First card renamed to "Quick Pay", styling updates dynamically based on mode selection
         ToolCard(
             title = "Quick Collect",
             description = "Offline payment QRs in seconds",
             iconRes = if (usePaypal) R.drawable.ic_paypal else R.drawable.ic_upi_pay,
             accentColor = if (usePaypal) {
-                if (isDark) Color(0xFF0079C1) else Color(0xFF003087) // PayPal Blue
+                if (isDark) Color(0xFF29B6F6) else Color(0xFF003087) // PayPal Blue
             } else {
                 if (isDark) Color(0xFF64B5F6) else Color(0xFF1E88E5) // UPI Blue
             },
@@ -80,13 +80,20 @@ fun ToolCard(
     accentColor: Color,
     onClick: () -> Unit
 ) {
+    val isDark = isSystemInDarkTheme()
+    val cardBg = if (isDark) {
+        accentColor.copy(alpha = 0.14f)
+    } else {
+        accentColor.copy(alpha = 0.08f)
+    }
+
     Card(
         onClick = onClick,
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
-            containerColor = accentColor.copy(alpha = 0.08f)
+            containerColor = cardBg
         ),
-        border = BorderStroke(1.dp, accentColor.copy(alpha = 0.20f)),
+        border = BorderStroke(1.dp, accentColor.copy(alpha = 0.25f)),
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(
@@ -110,7 +117,7 @@ fun ToolCard(
                 Text(
                     text = description,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.85f)
                 )
             }
         }

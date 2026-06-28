@@ -28,6 +28,12 @@ class UserStore(private val context: Context) {
         val PAYPAL_IDS_KEY = stringPreferencesKey("paypal_ids")
         val DEFAULT_PAYPAL_ID_KEY = stringPreferencesKey("default_paypal_id")
         val USE_PAYPAL_KEY = booleanPreferencesKey("use_paypal")
+
+        // Quick Chat Additions
+        val CHAT_DEFAULT_CODE_KEY = stringPreferencesKey("chat_default_code")
+        val CHAT_DEFAULT_ISO_KEY = stringPreferencesKey("chat_default_iso")
+        val CHAT_HISTORY_KEY = stringPreferencesKey("chat_history")
+        val CHAT_PAUSE_HISTORY_KEY = booleanPreferencesKey("chat_pause_history")
     }
 
     val upiIds: Flow<List<String>> = context.dataStore.data.map { preferences ->
@@ -124,12 +130,6 @@ class UserStore(private val context: Context) {
         }
     }
 
-    suspend fun saveDynamicColor(enabled: Boolean) {
-        context.dataStore.edit { preferences ->
-            preferences[DYNAMIC_COLOR_KEY] = enabled
-        }
-    }
-
     // PayPal save functions
     suspend fun savePaypalIds(ids: List<String>) {
         context.dataStore.edit { preferences ->
@@ -169,6 +169,69 @@ class UserStore(private val context: Context) {
             currentList.add(0, amount)
             val newList = currentList.take(3)
             preferences[RECENT_AMOUNTS_KEY] = newList.joinToString(",")
+        }
+    }
+
+    // Quick Chat flows & methods
+    val chatDefaultCode: Flow<String> = context.dataStore.data.map { preferences ->
+        preferences[CHAT_DEFAULT_CODE_KEY] ?: "91"
+    }
+
+    val chatDefaultIso: Flow<String> = context.dataStore.data.map { preferences ->
+        preferences[CHAT_DEFAULT_ISO_KEY] ?: "IN"
+    }
+
+    val chatHistory: Flow<List<String>> = context.dataStore.data.map { preferences ->
+        val raw = preferences[CHAT_HISTORY_KEY]
+        if (!raw.isNullOrBlank()) {
+            raw.split(";").filter { it.isNotBlank() }
+        } else {
+            emptyList()
+        }
+    }
+
+    val chatPauseHistory: Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[CHAT_PAUSE_HISTORY_KEY] ?: false
+    }
+
+    suspend fun saveChatDefaultCountry(code: String, iso: String) {
+        context.dataStore.edit { preferences ->
+            preferences[CHAT_DEFAULT_CODE_KEY] = code
+            preferences[CHAT_DEFAULT_ISO_KEY] = iso
+        }
+    }
+
+    suspend fun saveChatNumberToHistory(number: String, flag: String) {
+        context.dataStore.edit { preferences ->
+            val paused = preferences[CHAT_PAUSE_HISTORY_KEY] ?: false
+            if (!paused) {
+                val current = (preferences[CHAT_HISTORY_KEY] ?: "")
+                    .split(";")
+                    .filter { it.isNotBlank() }
+                    .toMutableList()
+                val entry = "$number:$flag"
+                current.remove(entry)
+                current.add(0, entry)
+                preferences[CHAT_HISTORY_KEY] = current.take(20).joinToString(";")
+            }
+        }
+    }
+
+    suspend fun clearChatHistory() {
+        context.dataStore.edit { preferences ->
+            preferences.remove(CHAT_HISTORY_KEY)
+        }
+    }
+
+    suspend fun saveChatPauseHistory(pause: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[CHAT_PAUSE_HISTORY_KEY] = pause
+        }
+    }
+
+    suspend fun saveDynamicColor(enabled: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[DYNAMIC_COLOR_KEY] = enabled
         }
     }
 }

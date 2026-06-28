@@ -1,82 +1,322 @@
 package l192.aakarsh.pocketops.ui.screens
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.launch
 import l192.aakarsh.pocketops.R
+import l192.aakarsh.pocketops.data.UserStore
+
+data class Country(val code: String, val iso: String, val name: String, val flag: String)
 
 @Composable
 fun QuickChatScreen(
+    userStore: UserStore,
+    showSettings: Boolean,
+    onToggleSettings: (Boolean) -> Unit,
+    selectingCountry: Boolean,
+    onToggleSelectingCountry: (Boolean) -> Unit,
     onDismiss: () -> Unit
 ) {
-    var phoneNumber by remember { mutableStateOf("") }
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
-    // Parse country code map
+    // Collect settings from DataStore
+    val defaultCode by userStore.chatDefaultCode.collectAsState(initial = "91")
+    val defaultIso by userStore.chatDefaultIso.collectAsState(initial = "IN")
+    val historyList by userStore.chatHistory.collectAsState(initial = emptyList())
+    val pauseHistory by userStore.chatPauseHistory.collectAsState(initial = false)
+
+    var phoneNumber by remember { mutableStateOf("") }
+    var searchQuery by remember { mutableStateOf("") }
+    var showClearHistoryConfirm by remember { mutableStateOf(false) }
+
+    // Comprehensive list of countries sorted alphabetically by name
+    val countries = remember {
+        listOf(
+            Country("93", "AF", "Afghanistan", "🇦🇫"),
+            Country("355", "AL", "Albania", "🇦🇱"),
+            Country("213", "DZ", "Algeria", "🇩🇿"),
+            Country("376", "AD", "Andorra", "🇦🇩"),
+            Country("244", "AO", "Angola", "🇦🇴"),
+            Country("1", "AI", "Anguilla", "🇦🇮"),
+            Country("1", "AG", "Antigua and Barbuda", "🇦🇬"),
+            Country("54", "AR", "Argentina", "🇦🇷"),
+            Country("374", "AM", "Armenia", "🇦🇲"),
+            Country("297", "AW", "Aruba", "🇦🇼"),
+            Country("61", "AU", "Australia", "🇦🇺"),
+            Country("43", "AT", "Austria", "🇦🇹"),
+            Country("994", "AZ", "Azerbaijan", "🇦🇿"),
+            Country("1", "BS", "Bahamas", "🇧🇸"),
+            Country("973", "BH", "Bahrain", "🇧🇭"),
+            Country("880", "BD", "Bangladesh", "🇧🇩"),
+            Country("1", "BB", "Barbados", "🇧🇧"),
+            Country("375", "BY", "Belarus", "🇧🇾"),
+            Country("32", "BE", "Belgium", "🇧🇪"),
+            Country("501", "BZ", "Belize", "🇧🇿"),
+            Country("229", "BJ", "Benin", "🇧🇯"),
+            Country("1", "BM", "Bermuda", "🇧🇲"),
+            Country("975", "BT", "Bhutan", "🇧🇹"),
+            Country("591", "BO", "Bolivia", "🇧🇴"),
+            Country("387", "BA", "Bosnia and Herzegovina", "🇧🇦"),
+            Country("267", "BW", "Botswana", "🇧🇼"),
+            Country("55", "BR", "Brazil", "🇧🇷"),
+            Country("1", "VG", "British Virgin Islands", "🇻🇬"),
+            Country("673", "BN", "Brunei", "🇧🇳"),
+            Country("359", "BG", "Bulgaria", "🇧🇬"),
+            Country("226", "BF", "Burkina Faso", "🇧🇫"),
+            Country("257", "BI", "Burundi", "🇧🇮"),
+            Country("855", "KH", "Cambodia", "🇰🇭"),
+            Country("237", "CM", "Cameroon", "🇨🇲"),
+            Country("1", "CA", "Canada", "🇨🇦"),
+            Country("238", "CV", "Cape Verde", "🇨🇻"),
+            Country("1", "KY", "Cayman Islands", "🇰🇾"),
+            Country("236", "CF", "Central African Republic", "🇨🇫"),
+            Country("235", "TD", "Chad", "🇹🇩"),
+            Country("56", "CL", "Chile", "🇨🇱"),
+            Country("86", "CN", "China", "🇨🇳"),
+            Country("57", "CO", "Colombia", "🇨🇴"),
+            Country("269", "KM", "Comoros", "🇰🇲"),
+            Country("242", "CG", "Congo", "🇨🇬"),
+            Country("243", "CD", "Congo (DRC)", "🇨🇩"),
+            Country("682", "CK", "Cook Islands", "🇨🇰"),
+            Country("506", "CR", "Costa Rica", "🇨🇷"),
+            Country("385", "HR", "Croatia", "🇭🇷"),
+            Country("53", "CU", "Cuba", "🇨🇺"),
+            Country("357", "CY", "Cyprus", "🇨🇾"),
+            Country("420", "CZ", "Czech Republic", "🇨🇿"),
+            Country("45", "DK", "Denmark", "🇩🇰"),
+            Country("253", "DJ", "Djibouti", "🇩🇯"),
+            Country("1", "DM", "Dominica", "🇩🇲"),
+            Country("1", "DO", "Dominican Republic", "🇩🇴"),
+            Country("593", "EC", "Ecuador", "🇪🇨"),
+            Country("20", "EG", "Egypt", "🇪🇬"),
+            Country("503", "SV", "El Salvador", "🇸🇻"),
+            Country("240", "GQ", "Equatorial Guinea", "🇬🇶"),
+            Country("291", "ER", "Eritrea", "🇪🇷"),
+            Country("372", "EE", "Estonia", "🇪🇪"),
+            Country("268", "SZ", "Eswatini", "🇸🇿"),
+            Country("251", "ET", "Ethiopia", "🇪🇹"),
+            Country("298", "FO", "Faroe Islands", "🇫🇴"),
+            Country("679", "FJ", "Fiji", "🇫🇯"),
+            Country("358", "FI", "Finland", "🇫🇮"),
+            Country("33", "FR", "France", "🇫🇷"),
+            Country("594", "GF", "French Guiana", "🇬🇫"),
+            Country("689", "PF", "French Polynesia", "🇵🇫"),
+            Country("241", "GA", "Gabon", "🇬🇦"),
+            Country("220", "GM", "Gambia", "🇬🇲"),
+            Country("995", "GE", "Georgia", "🇬🇪"),
+            Country("49", "DE", "Germany", "🇩🇪"),
+            Country("233", "GH", "Ghana", "🇬🇭"),
+            Country("350", "GI", "Gibraltar", "🇬🇮"),
+            Country("30", "GR", "Greece", "🇬🇷"),
+            Country("299", "GL", "Greenland", "🇬🇱"),
+            Country("1", "GD", "Grenada", "🇬🇩"),
+            Country("590", "GP", "Guadeloupe", "🇬🇵"),
+            Country("1", "GU", "Guam", "🇬🇺"),
+            Country("502", "GT", "Guatemala", "🇬🇹"),
+            Country("224", "GN", "Guinea", "🇬🇳"),
+            Country("245", "GW", "Guinea-Bissau", "🇬🇼"),
+            Country("592", "GY", "Guyana", "🇬🇾"),
+            Country("509", "HT", "Haiti", "🇭🇹"),
+            Country("504", "HN", "Honduras", "🇭🇳"),
+            Country("852", "HK", "Hong Kong", "🇭🇰"),
+            Country("36", "HU", "Hungary", "🇭🇺"),
+            Country("354", "IS", "Iceland", "🇮🇸"),
+            Country("91", "IN", "India", "🇮🇳"),
+            Country("62", "ID", "Indonesia", "🇮🇩"),
+            Country("98", "IR", "Iran", "🇮🇷"),
+            Country("964", "IQ", "Iraq", "🇮🇶"),
+            Country("353", "IE", "Ireland", "🇮🇪"),
+            Country("972", "IL", "Israel", "🇮🇱"),
+            Country("39", "IT", "Italy", "🇮🇹"),
+            Country("225", "CI", "Ivory Coast", "🇨🇮"),
+            Country("1", "JM", "Jamaica", "🇯🇲"),
+            Country("81", "JP", "Japan", "🇯🇵"),
+            Country("962", "JO", "Jordan", "🇯🇴"),
+            Country("7", "KZ", "Kazakhstan", "🇰🇿"),
+            Country("254", "KE", "Kenya", "🇰🇪"),
+            Country("686", "KI", "Kiribati", "🇰🇮"),
+            Country("965", "KW", "Kuwait", "🇰🇼"),
+            Country("996", "KG", "Kyrgyzstan", "🇰🇬"),
+            Country("856", "LA", "Laos", "🇱🇦"),
+            Country("371", "LV", "Latvia", "🇱🇻"),
+            Country("961", "LB", "Lebanon", "🇱🇧"),
+            Country("266", "LS", "Lesotho", "🇱🇸"),
+            Country("231", "LR", "Liberia", "🇱🇷"),
+            Country("218", "LY", "Libya", "🇱🇾"),
+            Country("423", "LI", "Liechtenstein", "🇱🇮"),
+            Country("370", "LT", "Lithuania", "🇱🇹"),
+            Country("352", "LU", "Luxembourg", "🇱🇺"),
+            Country("853", "MO", "Macau", "🇲🇴"),
+            Country("389", "MK", "North Macedonia", "🇲🇰"),
+            Country("261", "MG", "Madagascar", "🇲🇬"),
+            Country("265", "MW", "Malawi", "🇲🇼"),
+            Country("60", "MY", "Malaysia", "🇲🇾"),
+            Country("960", "MV", "Maldives", "🇲🇻"),
+            Country("223", "ML", "Mali", "🇲🇱"),
+            Country("356", "MT", "Malta", "🇲🇹"),
+            Country("692", "MH", "Marshall Islands", "🇲🇭"),
+            Country("596", "MQ", "Martinique", "🇲🇶"),
+            Country("222", "MR", "Mauritania", "🇲🇷"),
+            Country("230", "MU", "Mauritius", "🇲🇺"),
+            Country("262", "YT", "Mayotte", "🇾🇹"),
+            Country("52", "MX", "Mexico", "🇲🇽"),
+            Country("691", "FM", "Micronesia", "🇫🇲"),
+            Country("373", "MD", "Moldova", "🇲🇩"),
+            Country("377", "MC", "Monaco", "🇲🇨"),
+            Country("976", "MN", "Mongolia", "🇲🇳"),
+            Country("382", "ME", "Montenegro", "🇲🇪"),
+            Country("1", "MS", "Montserrat", "🇲🇸"),
+            Country("212", "MA", "Morocco", "🇲🇦"),
+            Country("258", "MZ", "Mozambique", "🇲🇿"),
+            Country("95", "MM", "Myanmar", "🇲🇲"),
+            Country("264", "NA", "Namibia", "🇳🇦"),
+            Country("674", "NR", "Nauru", "🇳🇷"),
+            Country("977", "NP", "Nepal", "🇳🇵"),
+            Country("31", "NL", "Netherlands", "🇳🇱"),
+            Country("687", "NC", "New Caledonia", "🇳🇨"),
+            Country("64", "NZ", "New Zealand", "🇳🇿"),
+            Country("505", "NI", "Nicaragua", "🇳🇮"),
+            Country("227", "NE", "Niger", "🇳🇪"),
+            Country("234", "NG", "Nigeria", "🇳🇬"),
+            Country("683", "NU", "Niue", "🇳🇺"),
+            Country("850", "KP", "North Korea", "🇰🇵"),
+            Country("1", "MP", "Northern Mariana Islands", "🇲🇵"),
+            android.os.Build.VERSION_CODES.N.let { Country("47", "NO", "Norway", "🇳🇴") },
+            Country("968", "OM", "Oman", "🇴🇲"),
+            Country("92", "PK", "Pakistan", "🇵🇰"),
+            Country("680", "PW", "Palau", "🇵🇼"),
+            Country("970", "PS", "Palestine", "🇵🇸"),
+            Country("507", "PA", "Panama", "🇵🇦"),
+            Country("675", "PG", "Papua New Guinea", "🇵🇬"),
+            Country("595", "PY", "Paraguay", "🇵🇾"),
+            Country("51", "PE", "Peru", "🇵🇪"),
+            Country("63", "PH", "Philippines", "🇵🇭"),
+            Country("48", "PL", "Poland", "🇵🇱"),
+            Country("351", "PT", "Portugal", "🇵🇹"),
+            Country("1", "PR", "Puerto Rico", "🇵🇷"),
+            Country("974", "QA", "Qatar", "🇶🇦"),
+            Country("262", "RE", "Réunion", "🇷🇪"),
+            Country("40", "RO", "Romania", "🇷🇴"),
+            Country("7", "RU", "Russia", "🇷🇺"),
+            Country("250", "RW", "Rwanda", "🇷🇼"),
+            Country("290", "SH", "Saint Helena", "🇸🇭"),
+            Country("1", "KN", "Saint Kitts and Nevis", "🇰🇳"),
+            Country("1", "LC", "Saint Lucia", "🇱🇨"),
+            Country("508", "PM", "Saint Pierre and Miquelon", "🇵🇲"),
+            Country("1", "VC", "Saint Vincent and the Grenadines", "🇻🇨"),
+            Country("685", "WS", "Samoa", "🇼🇸"),
+            Country("378", "SM", "San Marino", "🇸🇲"),
+            Country("239", "ST", "São Tomé and Príncipe", "🇸🇹"),
+            Country("966", "SA", "Saudi Arabia", "🇸🇦"),
+            Country("221", "SN", "Senegal", "🇸🇳"),
+            Country("381", "RS", "Serbia", "🇷🇸"),
+            Country("248", "SC", "Seychelles", "🇸🇨"),
+            Country("232", "SL", "Sierra Leone", "🇸🇱"),
+            Country("65", "SG", "Singapore", "🇸🇬"),
+            Country("421", "SK", "Slovakia", "🇸🇰"),
+            Country("386", "SI", "Slovenia", "🇸🇮"),
+            Country("677", "SB", "Solomon Islands", "🇸🇧"),
+            Country("252", "SO", "Somalia", "🇸🇴"),
+            Country("27", "ZA", "South Africa", "🇿🇦"),
+            Country("82", "KR", "South Korea", "🇰🇷"),
+            Country("211", "SS", "South Sudan", "🇸🇸"),
+            Country("34", "ES", "Spain", "🇪🇸"),
+            Country("94", "LK", "Sri Lanka", "🇱🇰"),
+            Country("249", "SD", "Sudan", "🇸🇩"),
+            Country("597", "SR", "Suriname", "🇸🇷"),
+            Country("46", "SE", "Sweden", "🇸🇪"),
+            Country("41", "CH", "Switzerland", "🇨🇭"),
+            Country("963", "SY", "Syria", "🇸🇾"),
+            Country("886", "TW", "Taiwan", "🇹🇼"),
+            Country("992", "TJ", "Tajikistan", "🇹🇯"),
+            Country("255", "TZ", "Tanzania", "🇹🇿"),
+            Country("66", "TH", "Thailand", "🇹🇭"),
+            Country("228", "TG", "Togo", "🇹🇬"),
+            Country("690", "TK", "Tokelau", "🇹🇰"),
+            Country("676", "TO", "Tonga", "🇹🇴"),
+            Country("1", "TT", "Trinidad and Tobago", "🇹🇹"),
+            Country("216", "TN", "Tunisia", "🇹🇳"),
+            Country("90", "TR", "Turkey", "🇹🇷"),
+            Country("993", "TM", "Turkmenistan", "🇹🇲"),
+            Country("1", "TC", "Turks and Caicos Islands", "🇹🇨"),
+            Country("688", "TV", "Tuvalu", "🇹🇻"),
+            Country("1", "VI", "U.S. Virgin Islands", "🇻🇮"),
+            Country("256", "UG", "Uganda", "🇺🇬"),
+            Country("380", "UA", "Ukraine", "🇺🇦"),
+            Country("971", "AE", "United Arab Emirates", "🇦🇪"),
+            Country("44", "GB", "United Kingdom", "🇬🇧"),
+            Country("1", "US", "United States", "🇺🇸"),
+            Country("598", "UY", "Uruguay", "🇺🇾"),
+            Country("998", "UZ", "Uzbekistan", "🇺🇿"),
+            Country("678", "VU", "Vanuatu", "🇻🇺"),
+            Country("379", "VA", "Vatican City", "🇻🇦"),
+            Country("58", "VE", "Venezuela", "🇻🇪"),
+            Country("84", "VN", "Vietnam", "🇻🇳"),
+            Country("681", "WF", "Wallis and Futuna", "🇼🇫"),
+            Country("967", "YE", "Yemen", "🇾🇪"),
+            Country("260", "ZM", "Zambia", "🇿🇲"),
+            Country("263", "ZW", "Zimbabwe", "🇿🇼")
+        ).sortedBy { it.name }
+    }
+
+    // Parse country code map for dynamic detection of input prefixes
     val countryCodeToIso = remember {
-        mapOf(
-            "1" to "US", "7" to "RU", "20" to "EG", "27" to "ZA", "30" to "GR",
-            "31" to "NL", "32" to "BE", "33" to "FR", "34" to "ES", "36" to "HU",
-            "39" to "IT", "40" to "RO", "41" to "CH", "43" to "AT", "44" to "GB",
-            "45" to "DK", "46" to "SE", "47" to "NO", "48" to "PL", "49" to "DE",
-            "51" to "PE", "52" to "MX", "53" to "CU", "54" to "AR", "55" to "BR",
-            "56" to "CL", "57" to "CO", "58" to "VE", "60" to "MY", "61" to "AU",
-            "62" to "ID", "63" to "PH", "64" to "NZ", "65" to "SG", "66" to "TH",
-            "81" to "JP", "82" to "KR", "84" to "VN", "86" to "CN", "90" to "TR",
-            "91" to "IN", "92" to "PK", "93" to "AF", "94" to "LK", "95" to "MM",
-            "98" to "IR", "212" to "MA", "213" to "DZ", "216" to "TN", "218" to "LY",
-            "220" to "GM", "233" to "GH", "234" to "NG", "244" to "AO", "251" to "ET",
-            "254" to "KE", "255" to "TZ", "256" to "UG", "260" to "ZM", "263" to "ZW",
-            "351" to "PT", "352" to "LU", "353" to "IE", "354" to "IS", "355" to "AL",
-            "358" to "FI", "359" to "BG", "370" to "LT", "371" to "LV", "372" to "EE",
-            "380" to "UA", "381" to "RS", "382" to "ME", "385" to "HR", "386" to "SI",
-            "389" to "MK", "420" to "CZ", "421" to "SK", "501" to "BZ", "502" to "GT",
-            "503" to "SV", "504" to "HN", "505" to "NI", "506" to "CR", "507" to "PA",
-            "509" to "HT", "591" to "BO", "593" to "EC", "595" to "PY", "598" to "UY",
-            "850" to "KP", "852" to "HK", "855" to "KH", "856" to "LA", "880" to "BD",
-            "886" to "TW", "960" to "MV", "961" to "LB", "962" to "JO", "963" to "SY",
-            "964" to "IQ", "965" to "KW", "966" to "SA", "967" to "YE", "968" to "OM",
-            "971" to "AE", "972" to "IL", "973" to "BH", "974" to "QA", "975" to "BT",
-            "976" to "MN", "977" to "NP", "992" to "TJ", "993" to "TM", "994" to "AZ",
-            "995" to "GE", "996" to "KG", "998" to "UZ"
-        )
+        countries.associate { it.code to it.iso }
     }
 
     // Helper to generate flag emoji from ISO
-    fun getFlagEmoji(countryCode: String): String {
-        if (countryCode.length != 2) return "🌐"
+    fun getFlagEmoji(countryIso: String): String {
+        if (countryIso.length != 2) return "🌐"
         try {
-            val firstChar = Character.codePointAt(countryCode, 0) - 0x41 + 0x1F1E6
-            val secondChar = Character.codePointAt(countryCode, 1) - 0x41 + 0x1F1E6
+            val firstChar = Character.codePointAt(countryIso, 0) - 0x41 + 0x1F1E6
+            val secondChar = Character.codePointAt(countryIso, 1) - 0x41 + 0x1F1E6
             return String(Character.toChars(firstChar)) + String(Character.toChars(secondChar))
         } catch (e: Exception) {
             return "🌐"
@@ -98,7 +338,7 @@ fun QuickChatScreen(
                 return countryCodeToIso[digits.substring(0, 1)]!!
             }
         } else {
-            // Check if digits start with a known country code and number is longer than 10 digits
+            // Check if digits start with a known country code
             if (digits.length > 10) {
                 val potentialCodeLength = digits.length - 10
                 val possibleCode = digits.substring(0, potentialCodeLength)
@@ -107,99 +347,341 @@ fun QuickChatScreen(
                 }
             }
         }
-        return "IN" // Default fallback country
+        return defaultIso
     }
 
-    // Normalize number, cleaning out spaces, brackets, hyphens, etc.
-    val digitsOnly = phoneNumber.replace(Regex("[^0-9]"), "")
-    val isValid = digitsOnly.length >= 10
+    if (showSettings) {
+        if (selectingCountry) {
+            // --- Default Country Selection Screen ---
+            Column(modifier = Modifier.fillMaxWidth()) {
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    placeholder = { Text("Search country...") },
+                    leadingIcon = { Icon(painterResource(R.drawable.ic_search), contentDescription = "Search") },
+                    shape = RoundedCornerShape(16.dp),
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
 
-    // Construct final parsed number to send
-    val finalNumber = when {
-        phoneNumber.trim().startsWith("+") -> {
-            "+$digitsOnly"
-        }
-        digitsOnly.length == 10 -> {
-            // Default to India (+91) for raw 10-digit entries
-            "+91$digitsOnly"
-        }
-        digitsOnly.length > 10 -> {
-            "+$digitsOnly"
-        }
-        else -> {
-            "+$digitsOnly"
-        }
-    }
+                Spacer(modifier = Modifier.height(12.dp))
 
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            "Enter a phone number to start a WhatsApp chat — no need to save the contact first.",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        OutlinedTextField(
-            value = phoneNumber,
-            onValueChange = { phoneNumber = it },
-            label = { Text("Phone Number") },
-            placeholder = { Text("+91 98765-43210") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-            shape = RoundedCornerShape(16.dp),
-            leadingIcon = {
-                // Displays country flag emoji depending on input
-                val flag = getFlagEmoji(detectCountryIso(phoneNumber))
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier.padding(start = 12.dp, end = 4.dp)
-                ) {
-                    Text(text = flag, fontSize = 20.sp)
+                val filteredCountries = countries.filter {
+                    it.name.contains(searchQuery, ignoreCase = true) || it.code.contains(searchQuery)
                 }
-            },
-            trailingIcon = {
-                if (phoneNumber.isNotEmpty()) {
-                    IconButton(onClick = { phoneNumber = "" }) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_close),
-                            contentDescription = "Clear"
+
+                Box(modifier = Modifier.weight(1f)) {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        items(filteredCountries) { country ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        scope.launch {
+                                            userStore.saveChatDefaultCountry(country.code, country.iso)
+                                            onToggleSelectingCountry(false)
+                                            searchQuery = ""
+                                        }
+                                    }
+                                    .padding(vertical = 12.dp, horizontal = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(text = country.flag, fontSize = 22.sp)
+                                Spacer(modifier = Modifier.width(16.dp))
+                                Text(
+                                    text = country.name,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                Text(
+                                    text = "+${country.code}",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                            HorizontalDivider(color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.08f))
+                        }
+                    }
+                }
+            }
+        } else {
+            // --- Quick Chat Settings Main View ---
+            Column(modifier = Modifier.fillMaxWidth()) {
+                // Country Selection Card
+                Text(
+                    text = "Default Country",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                val activeCountryName = countries.find { it.code == defaultCode && it.iso == defaultIso }?.name ?: "Default"
+                val activeFlag = getFlagEmoji(defaultIso)
+                Card(
+                    onClick = { onToggleSelectingCountry(true) },
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f)),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(text = activeFlag, fontSize = 24.sp)
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = activeCountryName,
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = "Dial Code: +$defaultCode",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Icon(painterResource(R.drawable.ic_keyboard_arrow_down), contentDescription = "Select")
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // History Header with Pause Toggle and Delete Button
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = "History",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.weight(1f)
+                    )
+                    if (historyList.isNotEmpty()) {
+                        IconButton(
+                            onClick = { showClearHistoryConfirm = true },
+                            modifier = Modifier.size(36.dp)
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_delete),
+                                contentDescription = "Clear History",
+                                tint = Color.Red,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Pause History Toggle Card
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f)),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Pause History",
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = "Temporarily stop saving numbers to history.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Switch(
+                            checked = pauseHistory,
+                            onCheckedChange = { scope.launch { userStore.saveChatPauseHistory(it) } }
                         )
                     }
                 }
-            },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth()
-        )
 
-        Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
-        Button(
-            onClick = {
-                if (isValid) {
-                    val intent = Intent(Intent.ACTION_VIEW).apply {
-                        data = Uri.parse("https://api.whatsapp.com/send?phone=$finalNumber")
+                // History Items List
+                if (historyList.isEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 24.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "No history items saved.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                        )
                     }
-                    context.startActivity(intent)
-                    onDismiss()
+                } else {
+                    Box(modifier = Modifier.weight(1f)) {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            items(historyList) { entry ->
+                                val parts = entry.split(":")
+                                val number = parts.getOrNull(0) ?: ""
+                                val flag = parts.getOrNull(1) ?: "🌐"
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable {
+                                            phoneNumber = number
+                                            onToggleSettings(false)
+                                        }
+                                        .padding(vertical = 12.dp, horizontal = 12.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(text = flag, fontSize = 20.sp)
+                                    Spacer(modifier = Modifier.width(16.dp))
+                                    Text(
+                                        text = number,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        fontWeight = FontWeight.Medium,
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                    Icon(
+                                        painter = painterResource(R.drawable.ic_whatsapp),
+                                        contentDescription = "Message",
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                }
+                                HorizontalDivider(color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.08f))
+                            }
+                        }
+                    }
                 }
-            },
-            enabled = isValid,
-            shape = RoundedCornerShape(16.dp),
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp)
-        ) {
-            Icon(
-                painter = painterResource(R.drawable.ic_whatsapp),
-                contentDescription = null,
-                modifier = Modifier.size(18.dp)
+            }
+        }
+
+        // Clear History Confirmation dialog
+        if (showClearHistoryConfirm) {
+            AlertDialog(
+                onDismissRequest = { showClearHistoryConfirm = false },
+                title = { Text("Clear Chat History?") },
+                text = { Text("Are you sure you want to permanently clear all saved chat numbers from your history?") },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            scope.launch { userStore.clearChatHistory() }
+                            showClearHistoryConfirm = false
+                        }
+                    ) {
+                        Text("Clear", color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showClearHistoryConfirm = false }) {
+                        Text("Cancel")
+                    }
+                }
             )
-            Spacer(modifier = Modifier.width(8.dp))
+        }
+    } else {
+        // --- Standard Chat Input Screen ---
+        val detectedIso = detectCountryIso(phoneNumber)
+        val activeFlag = getFlagEmoji(detectedIso)
+
+        val digitsOnly = phoneNumber.replace(Regex("[^0-9]"), "")
+        val isValid = digitsOnly.length >= 10
+
+        val finalNumber = when {
+            phoneNumber.trim().startsWith("+") -> {
+                "+$digitsOnly"
+            }
+            digitsOnly.startsWith(defaultCode) && digitsOnly.length > 10 -> {
+                "+$digitsOnly"
+            }
+            else -> {
+                "+$defaultCode$digitsOnly"
+            }
+        }
+
+        Column(modifier = Modifier.fillMaxWidth()) {
             Text(
-                "Start Chat",
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.SemiBold
+                "Enter a phone number to start a WhatsApp chat — no need to save the contact first.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedTextField(
+                value = phoneNumber,
+                onValueChange = { phoneNumber = it },
+                label = { Text("Phone Number") },
+                placeholder = { Text("+$defaultCode 98765-43210") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                shape = RoundedCornerShape(16.dp),
+                leadingIcon = {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.padding(start = 12.dp, end = 4.dp)
+                    ) {
+                        Text(text = activeFlag, fontSize = 20.sp)
+                    }
+                },
+                trailingIcon = {
+                    if (phoneNumber.isNotEmpty()) {
+                        IconButton(onClick = { phoneNumber = "" }) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_close),
+                                contentDescription = "Clear"
+                            )
+                        }
+                    }
+                },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Button(
+                onClick = {
+                    if (isValid) {
+                        scope.launch {
+                            userStore.saveChatNumberToHistory(finalNumber, activeFlag)
+                        }
+
+                        val intent = Intent(Intent.ACTION_VIEW).apply {
+                            data = Uri.parse("https://api.whatsapp.com/send?phone=$finalNumber")
+                        }
+                        context.startActivity(intent)
+                        onDismiss()
+                    }
+                },
+                enabled = isValid,
+                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp)
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_whatsapp),
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    "Start Chat",
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
         }
     }
 }
