@@ -1,21 +1,32 @@
-MIT License
+PocketOps Custom Open Source License
 
 Copyright (c) 2026 Aakarsh (L192)
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+1. DEFINITIONS
+- "Author" refers to Aakarsh (L192).
+- "Software" refers to the PocketOps Android application source code and binaries.
+- "Derivatives" refers to any modified version of the Software.
+- "Publish" or "Distribute" refers to making the Software or Derivatives available to third parties via app stores, websites, direct file transfers, or any other media.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+2. LOCAL & PERSONAL USE
+You are permitted to download, compile, modify, and use the Software locally and privately on your personal devices without restriction.
+
+3. REDISTRIBUTION OF ORIGINAL SOFTWARE
+You are permitted to redistribute the original, unmodified Software, provided that:
+- It retains the original branding, name (PocketOps), app logo, and package name (l192.aakarsh.pocketops).
+- It includes this license file and clearly credits Aakarsh (L192) as the Author.
+
+4. RESTRICTIONS ON DERIVATIVES & PUBLISHING
+You may NOT Publish or Distribute any Derivative work unless it meets the requirement of containing Major Functional Changes.
+- "Minor Changes" DO NOT grant permission to Publish or Distribute. Minor Changes include, but are not limited to:
+  - Changing the name, logo, icons, colors, or visual theme.
+  - Modifying the package name or application ID.
+  - Bug fixes, refactoring, performance improvements, or dependency updates.
+- "Major Functional Changes" require that new features and functional modifications constitute at least 30% of the entire codebase and functionality of the project.
+- Bug fixes and refactoring DO NOT count toward the 30% major change threshold. Only entirely new features or substantial functional expansions qualify.
+
+5. NO WARRANTY
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
