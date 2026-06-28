@@ -22,20 +22,13 @@
 
 ---
 
-## 📱 Interactive Flow
+## 📱 Screenshots
 
-```mermaid
-graph TD
-    Start([Launcher Shortcut / QS Tile]) --> Menu{PocketOps Drawer}
-    Menu -->|UPI / PayPal Toggle| Collect[Quick Collect]
-    Menu -->|Direct Chat| Chat[Quick Chat]
-    Menu -->|Open Username| Insta[Quick Insta]
-    
-    Collect -->|Switch Mode| Collect
-    Collect -->|Back Key| Menu
-    Chat -->|Back Key| Menu
-    Insta -->|Back Key| Menu
-```
+| Menu | Quick UPI | Quick UPI QR |
+|:----:|:---------:|:------------:|
+| <img src="Menu.png?v=2.1.0" width="200"/> | <img src="QuickUPI.png?v=2.1.0" width="200"/> | <img src="QuickUPIQR.png?v=2.1.0" width="200"/> |
+| **Quick Chat** | **Quick Insta** | |
+| <img src="QuickChat.png?v=2.1.0" width="200"/> | <img src="QuickInsta.png?v=2.1.0" width="200"/> | |
 
 ---
 
@@ -87,7 +80,7 @@ PocketOps adapts contextually to your workflow. The entire interface shifts its 
 
 ## 📜 License Quick Reference
 
-This project is licensed under the **PocketOps Custom Open Source License**. It is source-available for personal use and inspection, but enforces strict distribution rights.
+This project is licensed under the [PocketOps Custom Open Source License](LICENSE). It is source-available for personal use and inspection, but enforces strict distribution rights.
 
 | Permissions | Requirements | Restrictions |
 | :--- | :--- | :--- |
