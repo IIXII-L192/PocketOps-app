@@ -9,8 +9,9 @@ PocketOps v2.2.5 brings enhanced navigation physics, custom branding accents, an
 * Clicking the top-left back arrow now sequentially steps back through your screen history (e.g. Dashboard ↔ Enter Amount ↔ Setup / Chat / Settings) instead of closing immediately.
 
 ### 2. Intelligent Payment Mode Toggles
-* **Setup Screen**: Toggling the top-right payment switch now updates the manage page in-place, keeping you on the respective Setup screen (UPI Manage ↔ PayPal Manage).
-* **Quick Collect**: Toggling on the amount filler or QR display pages switches cleanly between payment modes (UPI Quick Collect ↔ PayPal Quick Collect).
+* **State-Aware Routing (`isManaging`)**: Introduced a state flag to track whether you are managing configuration or collecting payments.
+* **Setup Screen**: Switching payment modes while explicitly editing setup details (`Setup(isManaging = true)`) keeps you on the Setup manage screen of the newly selected mode (UPI Manage ↔ PayPal Manage).
+* **Quick Collect**: Switching modes while collecting payments (`EnterAmount`/`ShowQr`) transitions cleanly between configured Quick Collect forms. If a target mode is unconfigured, you are routed to `Setup(isManaging = false)` to set it up; toggling back immediately returns you to the active Quick Collect screen of the configured mode, completely preventing setup locks.
 * **Reset Rules**: Any mode change dynamically clears historical screens to prevent back-looping, ensuring the next back click returns you directly to the Main Menu.
 
 ### 3. Vector Accents & Space Optimization
