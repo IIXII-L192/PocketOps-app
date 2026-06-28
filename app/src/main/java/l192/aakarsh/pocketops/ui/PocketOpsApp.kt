@@ -55,6 +55,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.Dispatchers
@@ -174,9 +175,16 @@ fun PocketOpsApp(
         onTogglePaypal = { use ->
             scope.launch {
                 userStore.saveUsePaypal(use)
-                // Dynamically route setups depending on target config availability
-                val targetIds = if (use) savedPaypalIds else savedUpiIds
-                val targetDefault = if (use) savedDefaultPaypalId else savedDefaultUpiId
+                val targetIds = if (use) {
+                    userStore.paypalIds.first()
+                } else {
+                    userStore.upiIds.first()
+                }
+                val targetDefault = if (use) {
+                    userStore.defaultPaypalId.first()
+                } else {
+                    userStore.defaultUpiId.first()
+                }
                 if (uiState is PocketOpsUiState.Setup || uiState is PocketOpsUiState.EnterAmount || uiState is PocketOpsUiState.ShowQr) {
                     val targetState = if (uiState is PocketOpsUiState.Setup && uiState.isManaging) {
                         PocketOpsUiState.Setup(isManaging = true)
@@ -686,7 +694,7 @@ fun UpdateTag() {
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Icon(
-                        painter = painterResource(R.drawable.ic_check_square),
+                        painter = painterResource(R.drawable.ic_check_circle_fill),
                         contentDescription = "Install Update",
                         tint = MaterialTheme.colorScheme.surfaceVariant,
                         modifier = Modifier.size(12.dp)
