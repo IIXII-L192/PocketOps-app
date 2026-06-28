@@ -20,8 +20,8 @@ android {
         applicationId = "l192.aakarsh.pocketops"
         minSdk = 24
         targetSdk = 36
-        versionCode = 6
-        versionName = "2.1.5"
+        versionCode = 7
+        versionName = "2.1.7"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

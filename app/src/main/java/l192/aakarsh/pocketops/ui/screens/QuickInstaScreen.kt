@@ -56,8 +56,8 @@ fun QuickInstaScreen(
             shape = RoundedCornerShape(16.dp),
             leadingIcon = {
                 Icon(
-                    painter = painterResource(R.drawable.ic_instagram),
-                    contentDescription = "Username",
+                    painter = painterResource(R.drawable.ic_at),
+                    contentDescription = "Username Prefix",
                     modifier = Modifier.size(20.dp)
                 )
             },
@@ -117,7 +117,7 @@ fun QuickInstaScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Direct Search button
+        // Direct Search button (Explore / Search Instagram app)
         OutlinedButton(
             onClick = {
                 val appUri = Uri.parse("instagram://search")
@@ -138,13 +138,13 @@ fun QuickInstaScreen(
                 .height(50.dp)
         ) {
             Icon(
-                painter = painterResource(R.drawable.ic_instagram),
+                painter = painterResource(R.drawable.ic_search),
                 contentDescription = null,
                 modifier = Modifier.size(18.dp)
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                "Direct Search on Insta",
+                "Search Instagram App",
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.SemiBold
             )
