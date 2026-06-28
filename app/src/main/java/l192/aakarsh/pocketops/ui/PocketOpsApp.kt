@@ -74,7 +74,7 @@ import l192.aakarsh.pocketops.utils.UpdateState
 
 sealed interface PocketOpsUiState {
     data object Dashboard : PocketOpsUiState
-    data object Setup : PocketOpsUiState
+    data class Setup(val isManaging: Boolean) : PocketOpsUiState
     data class EnterAmount(val upiIds: List<String>, val defaultUpiId: String) : PocketOpsUiState
     data class ShowQr(
         val amount: String, val qrBitmap: Bitmap, val upiId: String, val payeeName: String
@@ -141,7 +141,7 @@ fun PocketOpsApp(
                 if (activeIds.isNotEmpty()) {
                     PocketOpsUiState.EnterAmount(activeIds, activeDefaultId ?: activeIds.first())
                 } else {
-                    PocketOpsUiState.Setup
+                    PocketOpsUiState.Setup(isManaging = false)
                 }
             }
             "l192.aakarsh.pocketops.ACTION_QUICK_CHAT" -> PocketOpsUiState.WhatsApp
@@ -178,11 +178,11 @@ fun PocketOpsApp(
                 val targetIds = if (use) savedPaypalIds else savedUpiIds
                 val targetDefault = if (use) savedDefaultPaypalId else savedDefaultUpiId
                 if (uiState is PocketOpsUiState.Setup || uiState is PocketOpsUiState.EnterAmount || uiState is PocketOpsUiState.ShowQr) {
-                    val targetState = if (uiState is PocketOpsUiState.Setup) {
-                        PocketOpsUiState.Setup
+                    val targetState = if (uiState is PocketOpsUiState.Setup && uiState.isManaging) {
+                        PocketOpsUiState.Setup(isManaging = true)
                     } else {
                         if (targetIds.isEmpty()) {
-                            PocketOpsUiState.Setup
+                            PocketOpsUiState.Setup(isManaging = false)
                         } else {
                             PocketOpsUiState.EnterAmount(targetIds, targetDefault ?: targetIds.first())
                         }
@@ -203,7 +203,7 @@ fun PocketOpsApp(
                     userStore.saveDefaultUpiId(defaultId)
                 }
                 userStore.savePayeeName(name)
-                if (navigationStack.isNotEmpty() && navigationStack.lastOrNull() == PocketOpsUiState.Setup) {
+                if (navigationStack.isNotEmpty() && navigationStack.lastOrNull() is PocketOpsUiState.Setup) {
                     navigationStack.removeAt(navigationStack.lastIndex)
                 }
                 if (ids.isNotEmpty()) {
@@ -249,7 +249,7 @@ fun PocketOpsApp(
                 )
             }
         },
-        onManageUpiIds = { navigateTo(PocketOpsUiState.Setup) },
+        onManageUpiIds = { navigateTo(PocketOpsUiState.Setup(isManaging = true)) },
         onBackToHome = {
             if (selectingCountry) {
                 selectingCountry = false
@@ -263,7 +263,7 @@ fun PocketOpsApp(
         onToolSelected = { tool ->
             val targetState = when (tool) {
                 QuickTool.UPI -> {
-                    if (activeIds.isEmpty()) PocketOpsUiState.Setup
+                    if (activeIds.isEmpty()) PocketOpsUiState.Setup(isManaging = false)
                     else PocketOpsUiState.EnterAmount(activeIds, activeDefaultId ?: activeIds.first())
                 }
                 QuickTool.WHATSAPP -> PocketOpsUiState.WhatsApp
@@ -360,7 +360,7 @@ fun PocketOpsContent(
                             PocketOpsUiState.WhatsApp -> if (selectingCountry) "Select Country" else if (showChatSettings) "Chat Settings" else "Quick Chat"
                             PocketOpsUiState.Instagram -> "Quick Insta"
                             PocketOpsUiState.Settings -> "Settings"
-                            PocketOpsUiState.Setup,
+                            is PocketOpsUiState.Setup,
                             is PocketOpsUiState.EnterAmount,
                             is PocketOpsUiState.ShowQr -> "Quick Collect"
                             else -> "PocketOps"
@@ -421,7 +421,7 @@ fun PocketOpsContent(
                     when (state) {
                         PocketOpsUiState.Dashboard ->
                             DashboardScreen(usePaypal = usePaypal, onToolSelected = onToolSelected)
-                        PocketOpsUiState.Setup ->
+                        is PocketOpsUiState.Setup ->
                             SetupScreen(
                                 upiIds = upiIds,
                                 defaultUpiId = defaultUpiId,
