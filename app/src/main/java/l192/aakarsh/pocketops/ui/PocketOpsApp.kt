@@ -462,21 +462,55 @@ fun UpdateTag() {
     }
 
     val state = UpdateManager.updateState
+    val hasLocalApk = UpdateManager.hasLocalApk
 
     when (state) {
         UpdateState.Idle -> {
-            Surface(
-                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                shape = RoundedCornerShape(12.dp),
-                modifier = Modifier.wrapContentSize()
-            ) {
-                Text(
-                    text = currentVersionName,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                    style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
-                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
-                    fontWeight = FontWeight.Medium
-                )
+            if (hasLocalApk) {
+                Surface(
+                    color = MaterialTheme.colorScheme.errorContainer,
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier
+                        .wrapContentSize()
+                        .clip(RoundedCornerShape(12.dp))
+                        .clickable {
+                            UpdateManager.deleteDownloadedApks(context)
+                        }
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center,
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
+                    ) {
+                        Text(
+                            text = "APK",
+                            color = MaterialTheme.colorScheme.onErrorContainer,
+                            style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Icon(
+                            painter = painterResource(R.drawable.ic_delete),
+                            contentDescription = "Delete APKs",
+                            tint = MaterialTheme.colorScheme.onErrorContainer,
+                            modifier = Modifier.size(12.dp)
+                        )
+                    }
+                }
+            } else {
+                Surface(
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.wrapContentSize()
+                ) {
+                    Text(
+                        text = currentVersionName,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                        style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                        fontWeight = FontWeight.Medium
+                    )
+                }
             }
         }
         is UpdateState.UpdateAvailable -> {
@@ -490,7 +524,7 @@ fun UpdateTag() {
                         UpdateManager.startDownload(
                             context,
                             state.releaseUrl,
-                            "PocketOps-v${state.versionName}.apk"
+                            state.versionName
                         )
                     }
             ) {
@@ -507,7 +541,7 @@ fun UpdateTag() {
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Icon(
-                        painter = painterResource(R.drawable.ic_arrow_up_update),
+                        painter = painterResource(R.drawable.ic_cloud_download),
                         contentDescription = "Update Available",
                         tint = MaterialTheme.colorScheme.surfaceVariant,
                         modifier = Modifier.size(12.dp)
@@ -527,30 +561,19 @@ fun UpdateTag() {
                     modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
                 ) {
                     Text(
-                        text = "Downloading...",
+                        text = "v${state.versionName}",
                         color = MaterialTheme.colorScheme.surfaceVariant,
                         style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
                         fontWeight = FontWeight.Bold
                     )
                     Spacer(modifier = Modifier.width(6.dp))
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier.size(14.dp)
-                    ) {
-                        CircularProgressIndicator(
-                            progress = { state.progress / 100f },
-                            color = MaterialTheme.colorScheme.surfaceVariant,
-                            trackColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-                            strokeWidth = 1.5.dp,
-                            modifier = Modifier.size(14.dp)
-                        )
-                        Icon(
-                            painter = painterResource(R.drawable.ic_arrow_up_update),
-                            contentDescription = "Downloading",
-                            tint = MaterialTheme.colorScheme.surfaceVariant,
-                            modifier = Modifier.size(8.dp)
-                        )
-                    }
+                    CircularProgressIndicator(
+                        progress = { state.progress / 100f },
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        trackColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                        strokeWidth = 2.dp,
+                        modifier = Modifier.size(12.dp)
+                    )
                 }
             }
         }
@@ -571,14 +594,14 @@ fun UpdateTag() {
                     modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
                 ) {
                     Text(
-                        text = "Install Update",
+                        text = "v${state.versionName}",
                         color = MaterialTheme.colorScheme.surfaceVariant,
                         style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
                         fontWeight = FontWeight.Bold
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Icon(
-                        painter = painterResource(R.drawable.ic_install),
+                        painter = painterResource(R.drawable.ic_check_square),
                         contentDescription = "Install Update",
                         tint = MaterialTheme.colorScheme.surfaceVariant,
                         modifier = Modifier.size(12.dp)
