@@ -43,9 +43,9 @@ fun DashboardScreen(
     ) {
         // First card renamed to "Quick Pay", styling updates dynamically based on mode selection
         ToolCard(
-            title = "Quick Pay",
+            title = "Quick Collect",
             description = "Offline payment QRs in seconds",
-            iconRes = if (usePaypal) R.drawable.ic_paypal else R.drawable.ic_qr_code,
+            iconRes = if (usePaypal) R.drawable.ic_paypal else R.drawable.ic_upi_pay,
             accentColor = if (usePaypal) {
                 if (isDark) Color(0xFF0079C1) else Color(0xFF003087) // PayPal Blue
             } else {

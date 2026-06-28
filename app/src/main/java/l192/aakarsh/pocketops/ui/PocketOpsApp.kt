@@ -306,7 +306,7 @@ fun PocketOpsContent(
                             PocketOpsUiState.Settings -> "Settings"
                             PocketOpsUiState.Setup,
                             is PocketOpsUiState.EnterAmount,
-                            is PocketOpsUiState.ShowQr -> "Quick Pay"
+                            is PocketOpsUiState.ShowQr -> "Quick Collect"
                             else -> "PocketOps"
                         },
                         style = MaterialTheme.typography.titleLarge,
@@ -427,24 +427,33 @@ fun PaymentModeSwitcherButton(
     usePaypal: Boolean,
     onTogglePaypal: (Boolean) -> Unit
 ) {
-    IconButton(
-        onClick = { onTogglePaypal(!usePaypal) },
-        modifier = Modifier.size(36.dp)
+    Surface(
+        color = MaterialTheme.colorScheme.primaryContainer,
+        shape = RoundedCornerShape(10.dp),
+        modifier = Modifier
+            .size(width = 44.dp, height = 32.dp)
+            .clip(RoundedCornerShape(10.dp))
+            .clickable { onTogglePaypal(!usePaypal) }
     ) {
-        AnimatedContent(
-            targetState = usePaypal,
-            transitionSpec = {
-                fadeIn(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)) togetherWith
-                        fadeOut(animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
-            },
-            label = "paymentModeTransition"
-        ) { activePaypal ->
-            Icon(
-                painter = painterResource(if (activePaypal) R.drawable.ic_paypal else R.drawable.ic_upi_pay),
-                contentDescription = "Switch Payment Mode",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(18.dp)
-            )
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.padding(horizontal = 4.dp)
+        ) {
+            AnimatedContent(
+                targetState = usePaypal,
+                transitionSpec = {
+                    fadeIn(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)) togetherWith
+                            fadeOut(animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
+                },
+                label = "paymentModeTransition"
+            ) { activePaypal ->
+                Icon(
+                    painter = painterResource(if (activePaypal) R.drawable.ic_paypal else R.drawable.ic_upi_pay),
+                    contentDescription = "Switch Payment Mode",
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                    modifier = Modifier.size(16.dp)
+                )
+            }
         }
     }
 }
