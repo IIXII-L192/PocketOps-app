@@ -6,41 +6,72 @@ TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
 
 1. DEFINITIONS
 - "Author" refers to Aakarsh (L192).
-- "Software" refers to the PocketOps Android application source code and binaries.
+- "Software" refers to the PocketOps Android application source code and
+  binaries.
 - "Derivatives" refers to any modified version of the Software.
-- "Publish" or "Distribute" refers to making the Software or Derivatives available to third parties via app stores, websites, direct file transfers, or any other media.
+- "Publish" or "Distribute" refers to making the Software or Derivatives
+  available to third parties via app stores, websites, direct file transfers,
+  or any other media.
 
 2. LOCAL & PERSONAL USE
-You are permitted to download, compile, modify, and use the Software locally and privately on your personal devices without restriction.
+You are permitted to download, compile, modify, and use the Software locally
+and privately on your personal devices without restriction.
 
 3. REDISTRIBUTION OF ORIGINAL SOFTWARE
-You are permitted to redistribute the original, unmodified Software, provided that:
-- It retains the original branding, name (PocketOps), app logo, and package name (l192.aakarsh.pocketops).
-- It includes this license file and clearly credits Aakarsh (L192) as the Author.
+You are permitted to redistribute the original, unmodified Software, provided
+that:
+- It retains the original branding, name (PocketOps), app logo, and package name
+  (l192.aakarsh.pocketops).
+- It includes this license file and clearly credits Aakarsh (L192) as the
+  Author.
 
 4. RESTRICTIONS ON DERIVATIVES & PUBLISHING
-You may NOT Publish or Distribute any Derivative work unless it meets the requirement of containing Major Functional Changes.
-- "Minor Changes" DO NOT grant permission to Publish or Distribute. Minor Changes include, but are not limited to:
+You may NOT Publish or Distribute any Derivative work unless it meets the
+requirement of containing Major Functional Changes.
+- "Minor Changes" DO NOT grant permission to Publish or Distribute. Minor
+  Changes include, but are not limited to:
   - Changing the name, logo, icons, colors, or visual theme.
   - Modifying the package name or application ID.
   - Bug fixes, refactoring, performance improvements, or dependency updates.
-- "Major Functional Changes" require that new features and functional modifications constitute at least 30% of the entire codebase and functionality of the project.
-- Bug fixes and refactoring DO NOT count toward the 30% major change threshold. Only entirely new features or substantial functional expansions qualify.
+- "Major Functional Changes" require that new features and functional
+  modifications constitute at least 30% of the entire codebase and
+  functionality of the project.
+- Bug fixes and refactoring DO NOT count toward the 30% major change
+  threshold. Only entirely new features or substantial functional expansions
+  qualify.
 
 5. SHARE-ALIKE AND OPEN SOURCE FORCE (COPYLEFT)
-If you meet the 30% Major Functional Changes threshold and choose to Publish or Distribute a Derivative work, you are legally obligated to:
-- Keep the entire source code of your Derivative work fully public and open-source. You cannot close the source code, sell it privately, or hide your modifications.
-- Distribute your Derivative work under this exact same license (or a compatible GPL-3.0 license), ensuring that any downstream users have the same rights and restrictions.
+If you meet the 30% Major Functional Changes threshold and choose to Publish
+or Distribute a Derivative work, you are legally obligated to:
+- Keep the entire source code of your Derivative work fully public and
+  open-source. You cannot close the source code, sell it privately, or hide
+  your modifications.
+- Distribute your Derivative work under this exact same license (or a
+  compatible GPL-3.0 license), ensuring that any downstream users have the
+  same rights and restrictions.
 
 6. PROTECTION OF AUTHORSHIP
 Any permitted Derivative work must:
-- Retain all original copyright notices, credits, and trademarks pointing to Aakarsh (L192).
-- Prominently state inside the application and its repository that it is a modified version of PocketOps, including a clear changelog stating what changes were made.
+- Retain all original copyright notices, credits, and trademarks pointing to
+  Aakarsh (L192).
+- Prominently state inside the application and its repository that it is a
+  modified version of PocketOps, including a clear changelog stating what
+  changes were made.
 
 7. OWNER EXCEPTIONS AND CUSTOM GRANTS
-The Author (Aakarsh / L192) reserves the sole right to grant exceptions, waive any restrictions, or offer custom licensing terms to any individual or organization at their absolute discretion. Any such custom permission must be requested and obtained in writing via email exclusively at 192aakarsh@gmail.com.
+The Author (Aakarsh / L192) reserves the sole right to grant exceptions, waive
+any restrictions, or offer custom licensing terms to any individual or
+organization at their absolute discretion. Any such custom permission must be
+requested and obtained in writing via email exclusively at
+192aakarsh@gmail.com.
 
 8. NO WARRANTY
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 
 
