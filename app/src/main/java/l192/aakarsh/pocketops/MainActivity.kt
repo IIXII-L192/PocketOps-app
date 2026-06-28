@@ -23,7 +23,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val themeMode by userStore.themeMode.collectAsState(initial = "SYSTEM")
-            val dynamicColor by userStore.dynamicColor.collectAsState(initial = true)
+            val dynamicColor by userStore.dynamicColor.collectAsState(initial = false)
             val isDarkTheme = when (themeMode) {
                 "LIGHT" -> false
                 "DARK" -> true

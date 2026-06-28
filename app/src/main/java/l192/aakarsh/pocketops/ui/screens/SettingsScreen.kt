@@ -118,7 +118,7 @@ fun SettingsScreen(
                     Icon(
                         painter = painterResource(R.drawable.ic_palette),
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
                         modifier = Modifier.size(24.dp)
                     )
                     Spacer(modifier = Modifier.width(16.dp))
@@ -127,17 +127,18 @@ fun SettingsScreen(
                             text = "Use Dynamic Palette",
                             style = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
                         )
                         Text(
-                            text = "Apply system Material You wallpaper matching engine.",
+                            text = "Coming soon — wallpaper color matching.",
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
                         )
                     }
                     Switch(
-                        checked = dynamicColor,
-                        onCheckedChange = onToggleDynamicColor
+                        checked = false,
+                        onCheckedChange = null,
+                        enabled = false
                     )
                 }
             }

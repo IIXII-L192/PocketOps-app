@@ -87,7 +87,7 @@ fun PocketOpsApp(
     userStore: UserStore,
     shortcutAction: String? = null,
     themeMode: String = "SYSTEM",
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false,
     onToggleDynamicColor: (Boolean) -> Unit = {},
     onChangeThemeMode: (String) -> Unit = {},
     onQrShown: () -> Unit = {},
@@ -243,7 +243,7 @@ fun PocketOpsContent(
     showUpiId: Boolean = true,
     themeMode: String = "SYSTEM",
     usePaypal: Boolean = false,
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false,
     onChangeThemeMode: (String) -> Unit = {},
     onTogglePaypal: (Boolean) -> Unit = {},
     onToggleDynamicColor: (Boolean) -> Unit = {},
@@ -540,7 +540,7 @@ fun UpdateTag() {
                     .clickable {
                         UpdateManager.startDownload(
                             context,
-                            state.releaseUrl,
+                            state.apkUrl,
                             state.versionName
                         )
                     }
