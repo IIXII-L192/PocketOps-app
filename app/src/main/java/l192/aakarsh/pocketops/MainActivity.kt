@@ -23,17 +23,24 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val themeMode by userStore.themeMode.collectAsState(initial = "SYSTEM")
+            val dynamicColor by userStore.dynamicColor.collectAsState(initial = true)
             val isDarkTheme = when (themeMode) {
                 "LIGHT" -> false
                 "DARK" -> true
                 else -> isSystemInDarkTheme()
             }
 
-            PocketOpsTheme(darkTheme = isDarkTheme) {
+            PocketOpsTheme(darkTheme = isDarkTheme, dynamicColor = dynamicColor) {
                 PocketOpsApp(
                     userStore = userStore,
                     shortcutAction = shortcutAction,
                     themeMode = themeMode,
+                    dynamicColor = dynamicColor,
+                    onToggleDynamicColor = { enabled ->
+                        lifecycleScope.launch {
+                            userStore.saveDynamicColor(enabled)
+                        }
+                    },
                     onChangeThemeMode = { nextMode ->
                         lifecycleScope.launch {
                             userStore.saveThemeMode(nextMode)

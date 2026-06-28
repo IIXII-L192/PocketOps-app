@@ -87,6 +87,8 @@ fun PocketOpsApp(
     userStore: UserStore,
     shortcutAction: String? = null,
     themeMode: String = "SYSTEM",
+    dynamicColor: Boolean = true,
+    onToggleDynamicColor: (Boolean) -> Unit = {},
     onChangeThemeMode: (String) -> Unit = {},
     onQrShown: () -> Unit = {},
     onRestoreBrightness: () -> Unit = {},
@@ -143,7 +145,9 @@ fun PocketOpsApp(
         showUpiId = showUpiId,
         themeMode = themeMode,
         usePaypal = usePaypal,
+        dynamicColor = dynamicColor,
         onChangeThemeMode = onChangeThemeMode,
+        onToggleDynamicColor = onToggleDynamicColor,
         onTogglePaypal = { use ->
             scope.launch {
                 userStore.saveUsePaypal(use)
@@ -239,8 +243,10 @@ fun PocketOpsContent(
     showUpiId: Boolean = true,
     themeMode: String = "SYSTEM",
     usePaypal: Boolean = false,
+    dynamicColor: Boolean = true,
     onChangeThemeMode: (String) -> Unit = {},
     onTogglePaypal: (Boolean) -> Unit = {},
+    onToggleDynamicColor: (Boolean) -> Unit = {},
     onSaveUpiIds: (List<String>, String, String) -> Unit,
     onGenerateQr: (String, String, String) -> Unit,
     onManageUpiIds: () -> Unit,
@@ -396,7 +402,9 @@ fun PocketOpsContent(
                         PocketOpsUiState.Settings ->
                             SettingsScreen(
                                 themeMode = themeMode,
-                                onChangeThemeMode = onChangeThemeMode
+                                dynamicColor = dynamicColor,
+                                onChangeThemeMode = onChangeThemeMode,
+                                onToggleDynamicColor = onToggleDynamicColor
                             )
                     }
                 }

@@ -22,6 +22,7 @@ class UserStore(private val context: Context) {
         val RECENT_AMOUNTS_KEY = stringPreferencesKey("recent_amounts")
         val SHOW_UPI_ID_KEY = booleanPreferencesKey("show_upi_id")
         val THEME_MODE_KEY = stringPreferencesKey("theme_mode")
+        val DYNAMIC_COLOR_KEY = booleanPreferencesKey("dynamic_color")
         
         // PayPal Additions
         val PAYPAL_IDS_KEY = stringPreferencesKey("paypal_ids")
@@ -59,6 +60,10 @@ class UserStore(private val context: Context) {
 
     val themeMode: Flow<String> = context.dataStore.data.map { preferences ->
         preferences[THEME_MODE_KEY] ?: "SYSTEM"
+    }
+
+    val dynamicColor: Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[DYNAMIC_COLOR_KEY] ?: true
     }
 
     // PayPal flow readers
@@ -116,6 +121,12 @@ class UserStore(private val context: Context) {
     suspend fun saveThemeMode(mode: String) {
         context.dataStore.edit { preferences ->
             preferences[THEME_MODE_KEY] = mode
+        }
+    }
+
+    suspend fun saveDynamicColor(enabled: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[DYNAMIC_COLOR_KEY] = enabled
         }
     }
 
