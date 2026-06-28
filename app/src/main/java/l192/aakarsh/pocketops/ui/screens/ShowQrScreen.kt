@@ -49,6 +49,7 @@ fun ShowQrScreen(
     upiId: String,
     payeeName: String,
     showUpiId: Boolean,
+    usePaypal: Boolean = false,
     showShareButton: Boolean = true,
     onQrShown: () -> Unit,
     onRestoreBrightness: () -> Unit,
@@ -73,6 +74,9 @@ fun ShowQrScreen(
         ),
         label = "qrScale"
     )
+
+    val currencyPrefix = if (usePaypal) "$" else "₹"
+    val idTypeLabel = if (usePaypal) "PayPal ID" else "UPI ID"
 
     Column(
         modifier = Modifier
@@ -119,7 +123,7 @@ fun ShowQrScreen(
         // Amount or Scan to Pay
         if (amount.isNotBlank()) {
             Text(
-                text = "₹$amount",
+                text = "$currencyPrefix$amount",
                 style = MaterialTheme.typography.displaySmall,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface,
@@ -137,10 +141,10 @@ fun ShowQrScreen(
             )
         }
 
-        // UPI ID
+        // ID display
         if (showUpiId) {
             Text(
-                text = upiId,
+                text = "$idTypeLabel: $upiId",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
@@ -154,7 +158,7 @@ fun ShowQrScreen(
         if (showShareButton) {
             Button(
                 onClick = {
-                    ShareUtils.shareQrCode(context, qrBitmap, payeeName, upiId, amount, showUpiId)
+                    ShareUtils.shareQrCode(context, qrBitmap, payeeName, upiId, amount, showUpiId, usePaypal)
                 },
                 shape = RoundedCornerShape(16.dp),
                 modifier = Modifier

@@ -22,9 +22,10 @@ object ShareUtils {
         name: String,
         upiId: String,
         amount: String,
-        showUpiId: Boolean
+        showUpiId: Boolean,
+        usePaypal: Boolean = false
     ) {
-        val imageFile = generateShareableImage(context, qrBitmap, name, upiId, amount, showUpiId) ?: return
+        val imageFile = generateShareableImage(context, qrBitmap, name, upiId, amount, showUpiId, usePaypal) ?: return
         val contentUri = FileProvider.getUriForFile(
             context,
             "${context.packageName}.provider",
@@ -45,7 +46,8 @@ object ShareUtils {
         name: String,
         upiId: String,
         amount: String,
-        showUpiId: Boolean
+        showUpiId: Boolean,
+        usePaypal: Boolean = false
     ): File? {
         try {
             val width = 800
@@ -83,7 +85,7 @@ object ShareUtils {
             textPaint.color = "#4c566a".toColorInt()
             canvas.drawText("Scan to Pay", width / 2f, qrTop - 35f, textPaint)
 
-            // Draw raw UPI ID directly below the QR code
+            // Draw raw ID directly below the QR code (UPI ID or PayPal ID)
             if (showUpiId) {
                 textPaint.textSize = 32f
                 textPaint.isFakeBoldText = false
@@ -91,12 +93,13 @@ object ShareUtils {
                 canvas.drawText(upiId, width / 2f, qrTop + qrSize + 60f, textPaint)
             }
 
-            // If amount is set, draw it below the UPI ID
+            // If amount is set, draw it below the ID
             if (amount.isNotBlank()) {
                 textPaint.textSize = 75f
                 textPaint.isFakeBoldText = true
                 textPaint.color = "#1a1a1a".toColorInt()
-                canvas.drawText("₹$amount", width / 2f, qrTop + qrSize + 150f, textPaint)
+                val currencyPrefix = if (usePaypal) "$" else "₹"
+                canvas.drawText("$currencyPrefix$amount", width / 2f, qrTop + qrSize + 150f, textPaint)
             }
 
             // Draw centered footer text at the bottom: PocketOps (without logo)

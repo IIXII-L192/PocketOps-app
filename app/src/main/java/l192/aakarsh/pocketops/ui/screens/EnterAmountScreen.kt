@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -29,19 +30,20 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import l192.aakarsh.pocketops.R
 
 @Composable
@@ -50,6 +52,7 @@ fun EnterAmountScreen(
     recentAmounts: List<String>,
     upiIds: List<String>,
     defaultUpiId: String,
+    usePaypal: Boolean = false,
     onGenerateQr: (String, String, String) -> Unit,
     onManageUpiIds: () -> Unit
 ) {
@@ -60,13 +63,24 @@ fun EnterAmountScreen(
     }
     var expanded by remember { mutableStateOf(false) }
 
+    val idTypeLabel = if (usePaypal) "PayPal ID" else "UPI ID"
+    val idIcon = if (usePaypal) R.drawable.ic_paypal else R.drawable.ic_upi_pay
+    val currencySymbol = if (usePaypal) "$" else "₹"
+    val displayAmounts = remember(recentAmounts, usePaypal) {
+        if (recentAmounts.isEmpty() || recentAmounts == listOf("100", "200", "500")) {
+            if (usePaypal) listOf("10", "20", "50") else listOf("100", "200", "500")
+        } else {
+            recentAmounts
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        // UPI ID Selector dropdown if there is more than 1 UPI ID
+        // ID Selector dropdown if there is more than 1 ID
         if (upiIds.size > 1) {
             ExposedDropdownMenuBox(
                 expanded = expanded,
@@ -88,8 +102,8 @@ fun EnterAmountScreen(
                     },
                     leadingIcon = {
                         Icon(
-                            painter = painterResource(R.drawable.ic_upi_pay),
-                            contentDescription = "UPI ID"
+                            painter = painterResource(idIcon),
+                            contentDescription = idTypeLabel
                         )
                     },
                     colors = ExposedDropdownMenuDefaults.textFieldColors(),
@@ -134,10 +148,21 @@ fun EnterAmountScreen(
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             shape = RoundedCornerShape(16.dp),
             leadingIcon = {
-                Icon(
-                    painter = painterResource(R.drawable.ic_currency_rupee),
-                    contentDescription = "Amount"
-                )
+                if (usePaypal) {
+                    // Cleaner generic dollar text symbol for global PayPal payments
+                    Text(
+                        text = "$",
+                        style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp),
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(start = 12.dp, end = 4.dp)
+                    )
+                } else {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_currency_rupee),
+                        contentDescription = "Amount"
+                    )
+                }
             },
             trailingIcon = {
                 if (amountInput.isNotEmpty()) {
@@ -155,19 +180,19 @@ fun EnterAmountScreen(
         )
 
         // Recent amount chips
-        if (recentAmounts.isNotEmpty()) {
+        if (displayAmounts.isNotEmpty()) {
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier
                     .fillMaxWidth()
                     .horizontalScroll(rememberScrollState())
             ) {
-                recentAmounts.forEach { amount ->
+                displayAmounts.forEach { amount ->
                     SuggestionChip(
                         onClick = { amountInput = amount },
                         label = {
                             Text(
-                                "₹$amount",
+                                "$currencySymbol$amount",
                                 style = MaterialTheme.typography.labelMedium,
                                 fontWeight = FontWeight.Medium
                             )
@@ -254,7 +279,7 @@ fun EnterAmountScreen(
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                "Manage UPI IDs",
+                "Manage $idTypeLabel",
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.SemiBold
             )

@@ -31,6 +31,7 @@ enum class QuickTool {
 
 @Composable
 fun DashboardScreen(
+    usePaypal: Boolean = false,
     onToolSelected: (QuickTool) -> Unit
 ) {
     val isDark = isSystemInDarkTheme()
@@ -40,11 +41,16 @@ fun DashboardScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.fillMaxWidth()
     ) {
+        // First card renamed to "Quick Pay", styling updates dynamically based on mode selection
         ToolCard(
-            title = "Quick UPI",
+            title = "Quick Pay",
             description = "Offline payment QRs in seconds",
-            iconRes = R.drawable.ic_qr_code,
-            accentColor = if (isDark) Color(0xFF64B5F6) else Color(0xFF1E88E5),
+            iconRes = if (usePaypal) R.drawable.ic_paypal else R.drawable.ic_qr_code,
+            accentColor = if (usePaypal) {
+                if (isDark) Color(0xFF0079C1) else Color(0xFF003087) // PayPal Blue
+            } else {
+                if (isDark) Color(0xFF64B5F6) else Color(0xFF1E88E5) // UPI Blue
+            },
             onClick = { onToolSelected(QuickTool.UPI) }
         )
 
@@ -52,7 +58,7 @@ fun DashboardScreen(
             title = "Quick Chat",
             description = "Direct WhatsApp chat without saving contacts",
             iconRes = R.drawable.ic_whatsapp,
-            accentColor = if (isDark) Color(0xFF81C784) else Color(0xFF4CAF50),
+            accentColor = if (isDark) Color(0xFF81C784) else Color(0xFF4CAF50), // WhatsApp Green
             onClick = { onToolSelected(QuickTool.WHATSAPP) }
         )
 
@@ -60,7 +66,7 @@ fun DashboardScreen(
             title = "Quick Insta",
             description = "Instant Instagram profile searches",
             iconRes = R.drawable.ic_instagram,
-            accentColor = if (isDark) Color(0xFFF48FB1) else Color(0xFFE91E63),
+            accentColor = if (isDark) Color(0xFFF48FB1) else Color(0xFFE91E63), // Insta Pink
             onClick = { onToolSelected(QuickTool.INSTAGRAM) }
         )
     }

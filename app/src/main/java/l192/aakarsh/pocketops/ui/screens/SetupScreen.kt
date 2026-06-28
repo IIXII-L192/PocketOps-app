@@ -52,6 +52,7 @@ import l192.aakarsh.pocketops.R
 fun SetupScreen(
     upiIds: List<String>,
     defaultUpiId: String?,
+    usePaypal: Boolean = false,
     onSaveUpiIds: (List<String>, String, String) -> Unit,
 ) {
     val currentUpiIds = remember(upiIds) { upiIds.toMutableStateList() }
@@ -71,6 +72,10 @@ fun SetupScreen(
 
     var dropdownExpanded by remember { mutableStateOf(false) }
 
+    val idTypeLabel = if (usePaypal) "PayPal ID" else "UPI ID"
+    val idPlaceholder = if (usePaypal) "username" else "name@bank"
+    val idIcon = if (usePaypal) R.drawable.ic_paypal else R.drawable.ic_upi_pay
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -78,12 +83,12 @@ fun SetupScreen(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Text(
-            "Setup your UPI ID",
+            "Setup your $idTypeLabel",
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
-        // Top-most element: Default UPI ID dropdown (only shown if multiple UPI IDs are connected)
+        // Top-most element: Default ID dropdown (only shown if multiple IDs are connected)
         if (currentUpiIds.size > 1) {
             ExposedDropdownMenuBox(
                 expanded = dropdownExpanded,
@@ -96,7 +101,7 @@ fun SetupScreen(
                     value = selectedDefaultUpiId,
                     onValueChange = {},
                     readOnly = true,
-                    label = { Text("Default UPI ID") },
+                    label = { Text("Default $idTypeLabel") },
                     trailingIcon = {
                         Icon(
                             painter = if (dropdownExpanded) painterResource(R.drawable.ic_keyboard_arrow_up)
@@ -106,8 +111,8 @@ fun SetupScreen(
                     },
                     leadingIcon = {
                         Icon(
-                            painter = painterResource(R.drawable.ic_upi_pay),
-                            contentDescription = "Default UPI ID"
+                            painter = painterResource(idIcon),
+                            contentDescription = "Default $idTypeLabel"
                         )
                     },
                     colors = ExposedDropdownMenuDefaults.textFieldColors(),
@@ -133,7 +138,7 @@ fun SetupScreen(
             }
         }
 
-        // Saved UPI IDs card
+        // Saved IDs card
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
@@ -151,7 +156,7 @@ fun SetupScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        "${currentUpiIds.size}/3 UPI IDs added",
+                        "${currentUpiIds.size}/3 ${idTypeLabel}s added",
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurface
@@ -211,7 +216,7 @@ fun SetupScreen(
             val upiToBeRemoved = currentUpiIds[pendingDeleteIndex]
             AlertDialog(
                 onDismissRequest = { showDeleteDialog = false },
-                title = { Text("Remove UPI ID?") },
+                title = { Text("Remove $idTypeLabel?") },
                 text = { Text("Are you sure you want to remove $upiToBeRemoved from PocketOps?") },
                 confirmButton = {
                     TextButton(
@@ -237,13 +242,17 @@ fun SetupScreen(
             )
         }
 
-        // Add new UPI ID
+        // Add new ID
         if (currentUpiIds.size < 3) {
-            val isUpiValid = newUpiInput.matches(Regex("^[a-zA-Z0-9.\\-_]+@[a-zA-Z]+$"))
+            val isIdValid = if (usePaypal) {
+                newUpiInput.matches(Regex("^[a-zA-Z0-9.\\-_]+$"))
+            } else {
+                newUpiInput.matches(Regex("^[a-zA-Z0-9.\\-_]+@[a-zA-Z]+$"))
+            }
             val isDuplicate = currentUpiIds.contains(newUpiInput)
 
             val addId = {
-                if (isUpiValid && !isDuplicate && newUpiInput.isNotEmpty()) {
+                if (isIdValid && !isDuplicate && newUpiInput.isNotEmpty()) {
                     currentUpiIds.add(newUpiInput)
                     if (selectedDefaultUpiId.isEmpty()) {
                         selectedDefaultUpiId = newUpiInput
@@ -256,17 +265,17 @@ fun SetupScreen(
                 OutlinedTextField(
                     value = newUpiInput,
                     onValueChange = { newUpiInput = it },
-                    label = { Text("UPI ID", maxLines = 1) },
-                    placeholder = { Text("anshujaat@nyes") },
+                    label = { Text(idTypeLabel, maxLines = 1) },
+                    placeholder = { Text(idPlaceholder) },
                     shape = RoundedCornerShape(16.dp),
                     leadingIcon = {
                         Icon(
-                            painter = painterResource(R.drawable.ic_upi_pay),
-                            contentDescription = "UPI ID"
+                            painter = painterResource(idIcon),
+                            contentDescription = idTypeLabel
                         )
                     },
                     trailingIcon = {
-                        if (newUpiInput.isNotEmpty() && isUpiValid && !isDuplicate) {
+                        if (newUpiInput.isNotEmpty() && isIdValid && !isDuplicate) {
                             IconButton(onClick = addId) {
                                 Icon(
                                     painter = painterResource(R.drawable.ic_add_upi_id),
@@ -276,16 +285,16 @@ fun SetupScreen(
                             }
                         }
                     },
-                    isError = (!isUpiValid && newUpiInput.isNotEmpty()) || isDuplicate,
+                    isError = (!isIdValid && newUpiInput.isNotEmpty()) || isDuplicate,
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                     keyboardActions = KeyboardActions(onDone = { addId() })
                 )
 
-                if (!isUpiValid && newUpiInput.isNotEmpty()) {
+                if (!isIdValid && newUpiInput.isNotEmpty()) {
                     Text(
-                        "Invalid UPI ID format (name@bank)",
+                        if (usePaypal) "Invalid PayPal username format" else "Invalid UPI ID format (name@bank)",
                         color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.bodySmall,
                         modifier = Modifier.padding(start = 16.dp, top = 4.dp)
@@ -293,7 +302,7 @@ fun SetupScreen(
                 }
                 if (isDuplicate) {
                     Text(
-                        "UPI ID already added",
+                        "$idTypeLabel already added",
                         color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.bodySmall,
                         modifier = Modifier.padding(start = 16.dp, top = 4.dp)
@@ -302,13 +311,13 @@ fun SetupScreen(
             }
         } else {
             Text(
-                "Maximum 3 UPI IDs allowed.",
+                "Maximum 3 ${idTypeLabel}s allowed.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
 
-        // Name input
+        // Name input (Optional - hidden or renamed if PayPal, let's keep it but optional payee name works for PayPal as well!)
         OutlinedTextField(
             value = newPayeeNameInput,
             onValueChange = { newPayeeNameInput = it },

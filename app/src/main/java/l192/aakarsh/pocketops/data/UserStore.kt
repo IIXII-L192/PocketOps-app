@@ -22,6 +22,11 @@ class UserStore(private val context: Context) {
         val RECENT_AMOUNTS_KEY = stringPreferencesKey("recent_amounts")
         val SHOW_UPI_ID_KEY = booleanPreferencesKey("show_upi_id")
         val THEME_MODE_KEY = stringPreferencesKey("theme_mode")
+        
+        // PayPal Additions
+        val PAYPAL_IDS_KEY = stringPreferencesKey("paypal_ids")
+        val DEFAULT_PAYPAL_ID_KEY = stringPreferencesKey("default_paypal_id")
+        val USE_PAYPAL_KEY = booleanPreferencesKey("use_paypal")
     }
 
     val upiIds: Flow<List<String>> = context.dataStore.data.map { preferences ->
@@ -54,6 +59,24 @@ class UserStore(private val context: Context) {
 
     val themeMode: Flow<String> = context.dataStore.data.map { preferences ->
         preferences[THEME_MODE_KEY] ?: "SYSTEM"
+    }
+
+    // PayPal flow readers
+    val paypalIds: Flow<List<String>> = context.dataStore.data.map { preferences ->
+        val rawIds = preferences[PAYPAL_IDS_KEY]
+        if (!rawIds.isNullOrBlank()) {
+            rawIds.split(",").filter { it.isNotBlank() }
+        } else {
+            emptyList()
+        }
+    }
+
+    val defaultPaypalId: Flow<String?> = context.dataStore.data.map { preferences ->
+        preferences[DEFAULT_PAYPAL_ID_KEY]
+    }
+
+    val usePaypal: Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[USE_PAYPAL_KEY] ?: false
     }
 
     suspend fun saveUpiIds(ids: List<String>) {
@@ -93,6 +116,33 @@ class UserStore(private val context: Context) {
     suspend fun saveThemeMode(mode: String) {
         context.dataStore.edit { preferences ->
             preferences[THEME_MODE_KEY] = mode
+        }
+    }
+
+    // PayPal save functions
+    suspend fun savePaypalIds(ids: List<String>) {
+        context.dataStore.edit { preferences ->
+            preferences[PAYPAL_IDS_KEY] = ids.joinToString(",")
+            if (ids.isNotEmpty()) {
+                val currentDefault = preferences[DEFAULT_PAYPAL_ID_KEY]
+                if (currentDefault == null || !ids.contains(currentDefault)) {
+                    preferences[DEFAULT_PAYPAL_ID_KEY] = ids.first()
+                }
+            } else {
+                preferences.remove(DEFAULT_PAYPAL_ID_KEY)
+            }
+        }
+    }
+
+    suspend fun saveDefaultPaypalId(id: String) {
+        context.dataStore.edit { preferences ->
+            preferences[DEFAULT_PAYPAL_ID_KEY] = id
+        }
+    }
+
+    suspend fun saveUsePaypal(use: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[USE_PAYPAL_KEY] = use
         }
     }
 

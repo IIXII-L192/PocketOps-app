@@ -11,7 +11,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -25,7 +24,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
@@ -66,6 +64,7 @@ import l192.aakarsh.pocketops.ui.screens.QuickInstaScreen
 import l192.aakarsh.pocketops.ui.screens.QuickTool
 import l192.aakarsh.pocketops.ui.screens.SetupScreen
 import l192.aakarsh.pocketops.ui.screens.ShowQrScreen
+import l192.aakarsh.pocketops.ui.screens.SettingsScreen
 import l192.aakarsh.pocketops.utils.QRCodeGenerator
 import l192.aakarsh.pocketops.utils.UpdateManager
 import l192.aakarsh.pocketops.utils.UpdateState
@@ -80,6 +79,7 @@ sealed interface PocketOpsUiState {
 
     data object WhatsApp : PocketOpsUiState
     data object Instagram : PocketOpsUiState
+    data object Settings : PocketOpsUiState
 }
 
 @Composable
@@ -92,8 +92,17 @@ fun PocketOpsApp(
     onRestoreBrightness: () -> Unit = {},
     onDismiss: () -> Unit = {}
 ) {
+    val usePaypal by userStore.usePaypal.collectAsState(initial = false)
     val savedUpiIds by userStore.upiIds.collectAsState(initial = emptyList())
+    val savedPaypalIds by userStore.paypalIds.collectAsState(initial = emptyList())
+    
+    // Choose active IDs based on mode
+    val activeIds = if (usePaypal) savedPaypalIds else savedUpiIds
+    
     val savedDefaultUpiId by userStore.defaultUpiId.collectAsState(initial = null)
+    val savedDefaultPaypalId by userStore.defaultPaypalId.collectAsState(initial = null)
+    val activeDefaultId = if (usePaypal) savedDefaultPaypalId else savedDefaultUpiId
+
     val savedPayeeName by userStore.payeeName.collectAsState(initial = null)
     val recentAmounts by userStore.recentAmounts.collectAsState(initial = emptyList())
     val showUpiId by userStore.showUpiId.collectAsState(initial = true)
@@ -106,12 +115,12 @@ fun PocketOpsApp(
         UpdateManager.checkForUpdates(context)
     }
 
-    LaunchedEffect(savedUpiIds, savedDefaultUpiId, shortcutAction) {
+    LaunchedEffect(savedUpiIds, savedPaypalIds, savedDefaultUpiId, savedDefaultPaypalId, shortcutAction, usePaypal) {
         if (shortcutAction != null) {
             when (shortcutAction) {
                 "l192.aakarsh.pocketops.ACTION_QUICK_UPI", "l192.aakarsh.pocketops.ACTION_SHOW_QR" -> {
-                    uiState = if (savedUpiIds.isNotEmpty()) {
-                        PocketOpsUiState.EnterAmount(savedUpiIds, savedDefaultUpiId ?: savedUpiIds.first())
+                    uiState = if (activeIds.isNotEmpty()) {
+                        PocketOpsUiState.EnterAmount(activeIds, activeDefaultId ?: activeIds.first())
                     } else {
                         PocketOpsUiState.Setup
                     }
@@ -129,59 +138,86 @@ fun PocketOpsApp(
     PocketOpsContent(
         uiState = uiState,
         recentAmounts = recentAmounts,
-        upiIds = savedUpiIds,
-        defaultUpiId = savedDefaultUpiId,
+        upiIds = activeIds,
+        defaultUpiId = activeDefaultId,
         showUpiId = showUpiId,
         themeMode = themeMode,
+        usePaypal = usePaypal,
         onChangeThemeMode = onChangeThemeMode,
-        onSaveUpiIds = { upiIds, name, defaultId ->
+        onTogglePaypal = { use ->
             scope.launch {
-                userStore.saveUpiIds(upiIds)
-                userStore.savePayeeName(name)
-                userStore.saveDefaultUpiId(defaultId)
-                if (upiIds.isNotEmpty()) {
-                    uiState = PocketOpsUiState.EnterAmount(upiIds, defaultId)
+                userStore.saveUsePaypal(use)
+                // Dynamically route setups depending on target config availability
+                val targetIds = if (use) savedPaypalIds else savedUpiIds
+                val targetDefault = if (use) savedDefaultPaypalId else savedDefaultUpiId
+                if (uiState is PocketOpsUiState.Setup || uiState is PocketOpsUiState.EnterAmount || uiState is PocketOpsUiState.ShowQr) {
+                    uiState = if (targetIds.isEmpty()) {
+                        PocketOpsUiState.Setup
+                    } else {
+                        PocketOpsUiState.EnterAmount(targetIds, targetDefault ?: targetIds.first())
+                    }
                 }
             }
         },
-        onGenerateQr = { amount, note, selectedUpiId ->
+        onSaveUpiIds = { ids, name, defaultId ->
+            scope.launch {
+                if (usePaypal) {
+                    userStore.savePaypalIds(ids)
+                    userStore.saveDefaultPaypalId(defaultId)
+                } else {
+                    userStore.saveUpiIds(ids)
+                    userStore.saveDefaultUpiId(defaultId)
+                }
+                userStore.savePayeeName(name)
+                if (ids.isNotEmpty()) {
+                    uiState = PocketOpsUiState.EnterAmount(ids, defaultId)
+                }
+            }
+        },
+        onGenerateQr = { amount, note, selectedId ->
             if (amount.isNotBlank()) {
                 scope.launch { userStore.saveRecentAmount(amount) }
             }
 
-            val uriBuilder = Uri.Builder().scheme("upi").authority("pay")
-                .appendQueryParameter("pa", selectedUpiId)
-                .apply {
-                    if (amount.isNotBlank()) {
-                        appendQueryParameter("am", amount)
-                    }
-                }.appendQueryParameter("cu", "INR")
+            val payURL = if (usePaypal) {
+                val cleanAmount = amount.trim()
+                if (cleanAmount.isNotBlank()) "https://paypal.me/$selectedId/$cleanAmount"
+                else "https://paypal.me/$selectedId"
+            } else {
+                val uriBuilder = Uri.Builder().scheme("upi").authority("pay")
+                    .appendQueryParameter("pa", selectedId)
+                    .apply {
+                        if (amount.isNotBlank()) {
+                            appendQueryParameter("am", amount)
+                        }
+                    }.appendQueryParameter("cu", "INR")
 
-            if (!savedPayeeName.isNullOrBlank()) {
-                uriBuilder.appendQueryParameter("pn", savedPayeeName)
+                if (!savedPayeeName.isNullOrBlank()) {
+                    uriBuilder.appendQueryParameter("pn", savedPayeeName)
+                }
+                if (note.isNotBlank()) {
+                    uriBuilder.appendQueryParameter("tn", note)
+                }
+                uriBuilder.build().toString()
             }
-            if (note.isNotBlank()) {
-                uriBuilder.appendQueryParameter("tn", note)
-            }
-
-            val payeeURL = uriBuilder.build()
 
             scope.launch {
                 val bitmap = withContext(Dispatchers.Default) {
-                    QRCodeGenerator.generateQRCode(context, payeeURL.toString(), 1024, 1024)
+                    QRCodeGenerator.generateQRCode(context, payURL, 1024, 1024)
                 }
                 uiState = PocketOpsUiState.ShowQr(
-                    amount, bitmap, selectedUpiId, savedPayeeName ?: ""
+                    amount, bitmap, selectedId, savedPayeeName ?: ""
                 )
             }
         },
         onManageUpiIds = { uiState = PocketOpsUiState.Setup },
         onBackToHome = { uiState = PocketOpsUiState.Dashboard },
+        onOpenSettings = { uiState = PocketOpsUiState.Settings },
         onToolSelected = { tool ->
             uiState = when (tool) {
                 QuickTool.UPI -> {
-                    if (savedUpiIds.isEmpty()) PocketOpsUiState.Setup
-                    else PocketOpsUiState.EnterAmount(savedUpiIds, savedDefaultUpiId ?: savedUpiIds.first())
+                    if (activeIds.isEmpty()) PocketOpsUiState.Setup
+                    else PocketOpsUiState.EnterAmount(activeIds, activeDefaultId ?: activeIds.first())
                 }
                 QuickTool.WHATSAPP -> PocketOpsUiState.WhatsApp
                 QuickTool.INSTAGRAM -> PocketOpsUiState.Instagram
@@ -202,11 +238,14 @@ fun PocketOpsContent(
     defaultUpiId: String? = null,
     showUpiId: Boolean = true,
     themeMode: String = "SYSTEM",
+    usePaypal: Boolean = false,
     onChangeThemeMode: (String) -> Unit = {},
+    onTogglePaypal: (Boolean) -> Unit = {},
     onSaveUpiIds: (List<String>, String, String) -> Unit,
     onGenerateQr: (String, String, String) -> Unit,
     onManageUpiIds: () -> Unit,
     onBackToHome: () -> Unit,
+    onOpenSettings: () -> Unit = {},
     onToolSelected: (QuickTool) -> Unit = {},
     onQrShown: () -> Unit = {},
     onRestoreBrightness: () -> Unit = {},
@@ -256,10 +295,7 @@ fun PocketOpsContent(
                                 )
                             }
                         } else {
-                            ThemeSwitcherButton(
-                                themeMode = themeMode,
-                                onChangeThemeMode = onChangeThemeMode
-                            )
+                            UpdateTag()
                         }
                     }
 
@@ -267,9 +303,10 @@ fun PocketOpsContent(
                         text = when (uiState) {
                             PocketOpsUiState.WhatsApp -> "Quick Chat"
                             PocketOpsUiState.Instagram -> "Quick Insta"
+                            PocketOpsUiState.Settings -> "Settings"
                             PocketOpsUiState.Setup,
                             is PocketOpsUiState.EnterAmount,
-                            is PocketOpsUiState.ShowQr -> "Quick UPI"
+                            is PocketOpsUiState.ShowQr -> "Quick Pay"
                             else -> "PocketOps"
                         },
                         style = MaterialTheme.typography.titleLarge,
@@ -284,7 +321,23 @@ fun PocketOpsContent(
                         contentAlignment = Alignment.CenterEnd
                     ) {
                         if (uiState == PocketOpsUiState.Dashboard) {
-                            UpdateTag()
+                            IconButton(
+                                onClick = onOpenSettings,
+                                modifier = Modifier.size(36.dp)
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_settings),
+                                    contentDescription = "Settings",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                        } else if (uiState is PocketOpsUiState.Setup || uiState is PocketOpsUiState.EnterAmount || uiState is PocketOpsUiState.ShowQr) {
+                            // Payment Mode Switcher in the top-right box of Quick Pay screens
+                            PaymentModeSwitcherButton(
+                                usePaypal = usePaypal,
+                                onTogglePaypal = onTogglePaypal
+                            )
                         }
                     }
                 }
@@ -307,11 +360,12 @@ fun PocketOpsContent(
                 ) { state ->
                     when (state) {
                         PocketOpsUiState.Dashboard ->
-                            DashboardScreen(onToolSelected = onToolSelected)
+                            DashboardScreen(usePaypal = usePaypal, onToolSelected = onToolSelected)
                         PocketOpsUiState.Setup ->
                             SetupScreen(
                                 upiIds = upiIds,
                                 defaultUpiId = defaultUpiId,
+                                usePaypal = usePaypal,
                                 onSaveUpiIds = onSaveUpiIds
                             )
                         is PocketOpsUiState.EnterAmount ->
@@ -319,6 +373,7 @@ fun PocketOpsContent(
                                 recentAmounts = recentAmounts,
                                 upiIds = state.upiIds,
                                 defaultUpiId = state.defaultUpiId,
+                                usePaypal = usePaypal,
                                 onGenerateQr = onGenerateQr,
                                 onManageUpiIds = onManageUpiIds
                             )
@@ -329,6 +384,7 @@ fun PocketOpsContent(
                                 upiId = state.upiId,
                                 payeeName = state.payeeName,
                                 showUpiId = showUpiId,
+                                usePaypal = usePaypal,
                                 onQrShown = onQrShown,
                                 onRestoreBrightness = onRestoreBrightness,
                                 onDismiss = onDismiss
@@ -337,6 +393,11 @@ fun PocketOpsContent(
                             QuickChatScreen(onDismiss = onDismiss)
                         PocketOpsUiState.Instagram ->
                             QuickInstaScreen(onDismiss = onDismiss)
+                        PocketOpsUiState.Settings ->
+                            SettingsScreen(
+                                themeMode = themeMode,
+                                onChangeThemeMode = onChangeThemeMode
+                            )
                     }
                 }
 
@@ -362,40 +423,25 @@ fun PocketOpsContent(
 }
 
 @Composable
-fun ThemeSwitcherButton(
-    themeMode: String,
-    onChangeThemeMode: (String) -> Unit
+fun PaymentModeSwitcherButton(
+    usePaypal: Boolean,
+    onTogglePaypal: (Boolean) -> Unit
 ) {
-    val nextMode = when (themeMode) {
-        "SYSTEM" -> "LIGHT"
-        "LIGHT" -> "DARK"
-        else -> "SYSTEM"
-    }
-
-    val iconRes = when (themeMode) {
-        "LIGHT" -> R.drawable.ic_sun
-        "DARK" -> R.drawable.ic_moon
-        else -> R.drawable.ic_phone
-    }
-
     IconButton(
-        onClick = { onChangeThemeMode(nextMode) },
-        modifier = Modifier
-            .size(36.dp)
-            .clip(CircleShape)
-            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+        onClick = { onTogglePaypal(!usePaypal) },
+        modifier = Modifier.size(36.dp)
     ) {
         AnimatedContent(
-            targetState = iconRes,
+            targetState = usePaypal,
             transitionSpec = {
                 fadeIn(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)) togetherWith
                         fadeOut(animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
             },
-            label = "themeIconTransition"
-        ) { targetIcon ->
+            label = "paymentModeTransition"
+        ) { activePaypal ->
             Icon(
-                painter = painterResource(targetIcon),
-                contentDescription = "Switch Theme Mode",
+                painter = painterResource(if (activePaypal) R.drawable.ic_paypal else R.drawable.ic_upi_pay),
+                contentDescription = "Switch Payment Mode",
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(18.dp)
             )
@@ -411,7 +457,7 @@ fun UpdateTag() {
             val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
             "v${packageInfo.versionName}"
         } catch (e: Exception) {
-            "v2.1.7"
+            "v2.1.8"
         }
     }
 
