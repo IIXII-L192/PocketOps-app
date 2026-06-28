@@ -540,7 +540,7 @@ fun UpdateTag() {
                     .clickable {
                         UpdateManager.startDownload(
                             context,
-                            state.releaseUrl,
+                            state.apkUrl,
                             state.versionName
                         )
                     }
