@@ -516,7 +516,7 @@ fun UpdateTag() {
                     .wrapContentSize()
                     .clip(RoundedCornerShape(12.dp))
                     .clickable {
-                        UpdateManager.openDownloadsFolder(context)
+                        UpdateManager.installApk(context, state.fileName)
                     }
             ) {
                 Row(

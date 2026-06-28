@@ -9,11 +9,13 @@ import android.os.Environment
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.core.content.FileProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.json.JSONObject
+import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
 
@@ -21,7 +23,7 @@ sealed interface UpdateState {
     object Idle : UpdateState
     data class UpdateAvailable(val versionName: String, val releaseUrl: String, val versionCode: Int) : UpdateState
     data class Downloading(val progress: Int) : UpdateState
-    data class ReadyToInstall(val releaseUrl: String) : UpdateState
+    data class ReadyToInstall(val releaseUrl: String, val fileName: String) : UpdateState
 }
 
 object UpdateManager {
@@ -31,6 +33,9 @@ object UpdateManager {
     private var downloadId: Long = -1
 
     fun checkForUpdates(context: Context) {
+        // Clean up any old downloaded APK files automatically on startup
+        cleanObsoleteApks(context)
+
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
@@ -53,7 +58,14 @@ object UpdateManager {
                 val releaseUrl = json.optString("releaseUrl", "")
 
                 if (remoteVersionCode > currentVersionCode) {
-                    updateState = UpdateState.UpdateAvailable(remoteVersionName, releaseUrl, remoteVersionCode)
+                    // Check if the update is already fully downloaded locally
+                    val fileName = "PocketOps-v$remoteVersionName.apk"
+                    val localFile = File(context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), fileName)
+                    if (localFile.exists()) {
+                        updateState = UpdateState.ReadyToInstall(releaseUrl, fileName)
+                    } else {
+                        updateState = UpdateState.UpdateAvailable(remoteVersionName, releaseUrl, remoteVersionCode)
+                    }
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -67,7 +79,9 @@ object UpdateManager {
                 setTitle("PocketOps Update")
                 setDescription("Downloading latest release...")
                 setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-                setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName)
+                // Download into app-private external downloads folder: Android/data/l192.aakarsh.pocketops/files/Download
+                // Requires ZERO permissions (no READ/WRITE_EXTERNAL_STORAGE needed)
+                setDestinationInExternalFilesDir(context, Environment.DIRECTORY_DOWNLOADS, fileName)
                 setAllowedOverMetered(true)
                 setAllowedOverRoaming(true)
             }
@@ -76,14 +90,14 @@ object UpdateManager {
             downloadId = downloadManager.enqueue(request)
             updateState = UpdateState.Downloading(0)
 
-            trackProgress(context, downloadManager)
+            trackProgress(context, downloadManager, fileName)
         } catch (e: Exception) {
             e.printStackTrace()
             updateState = UpdateState.Idle
         }
     }
 
-    private fun trackProgress(context: Context, downloadManager: DownloadManager) {
+    private fun trackProgress(context: Context, downloadManager: DownloadManager, fileName: String) {
         CoroutineScope(Dispatchers.IO).launch {
             var downloading = true
             while (downloading) {
@@ -100,7 +114,7 @@ object UpdateManager {
 
                     if (status == DownloadManager.STATUS_SUCCESSFUL) {
                         downloading = false
-                        updateState = UpdateState.ReadyToInstall("")
+                        updateState = UpdateState.ReadyToInstall("", fileName)
                     } else if (status == DownloadManager.STATUS_FAILED) {
                         downloading = false
                         updateState = UpdateState.Idle
@@ -118,10 +132,41 @@ object UpdateManager {
         }
     }
 
-    fun openDownloadsFolder(context: Context) {
+    fun installApk(context: Context, fileName: String) {
         try {
-            val intent = Intent(DownloadManager.ACTION_VIEW_DOWNLOADS)
-            context.startActivity(intent)
+            val file = File(context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), fileName)
+            if (file.exists()) {
+                val apkUri = FileProvider.getUriForFile(
+                    context,
+                    "${context.packageName}.provider",
+                    file
+                )
+                val intent = Intent(Intent.ACTION_VIEW).apply {
+                    setDataAndType(apkUri, "application/vnd.android.package-archive")
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                context.startActivity(intent)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    private fun cleanObsoleteApks(context: Context) {
+        try {
+            val downloadDir = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
+            if (downloadDir != null && downloadDir.exists()) {
+                val files = downloadDir.listFiles()
+                if (files != null) {
+                    for (file in files) {
+                        if (file.isFile && file.name.endsWith(".apk")) {
+                            // Automatically clean up previously downloaded update packages
+                            file.delete()
+                        }
+                    }
+                }
+            }
         } catch (e: Exception) {
             e.printStackTrace()
         }
