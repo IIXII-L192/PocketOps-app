@@ -62,6 +62,7 @@ import l192.aakarsh.pocketops.ui.screens.QuickTool
 import l192.aakarsh.pocketops.ui.screens.SetupScreen
 import l192.aakarsh.pocketops.ui.screens.ShowQrScreen
 import l192.aakarsh.pocketops.utils.QRCodeGenerator
+import l192.aakarsh.pocketops.utils.UpdateManager
 
 sealed interface PocketOpsUiState {
     data object Dashboard : PocketOpsUiState
@@ -92,6 +93,11 @@ fun PocketOpsApp(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     var uiState by remember { mutableStateOf<PocketOpsUiState>(PocketOpsUiState.Dashboard) }
+
+    // Start update verification immediately when PocketOps is opened
+    LaunchedEffect(Unit) {
+        UpdateManager.checkForUpdates(context)
+    }
 
     LaunchedEffect(savedUpiIds, savedDefaultUpiId, shortcutAction) {
         if (shortcutAction != null) {
