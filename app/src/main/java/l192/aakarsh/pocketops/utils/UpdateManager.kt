@@ -1,10 +1,7 @@
 package l192.aakarsh.pocketops.utils
 
-import android.app.DownloadManager
-import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
@@ -15,7 +12,6 @@ import androidx.compose.runtime.setValue
 import androidx.core.content.FileProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 import java.io.File
@@ -36,12 +32,11 @@ object UpdateManager {
     var hasLocalApk by mutableStateOf(false)
         private set
 
-    private var downloadId: Long = -1
     private var lastCheckTime: Long = 0
 
     /**
-     * Get the app-private downloads directory. This is the ONLY place we download to,
-     * because FileProvider can serve files from here and the Package Installer can read them.
+     * Get the app-private downloads directory. This is where APKs are saved
+     * so that FileProvider can always access and serve them without any storage permissions.
      */
     private fun getDownloadDir(context: Context): File {
         val dir = File(context.getExternalFilesDir(null), "updates")
@@ -98,7 +93,6 @@ object UpdateManager {
 
     /**
      * Check for updates by fetching update.json from GitHub.
-     * Throttled to once every 5 seconds.
      */
     fun checkForUpdates(context: Context) {
         val now = System.currentTimeMillis()
@@ -156,8 +150,8 @@ object UpdateManager {
     }
 
     /**
-     * Download the APK from the GitHub release URL to app-private storage.
-     * Uses DownloadManager for reliable background downloading with progress tracking.
+     * Download the APK from the GitHub release URL directly to app-private storage.
+     * Uses a direct background connection to bypass system DownloadManager UID and permission issues.
      */
     fun startDownload(context: Context, urlStr: String, remoteVersionName: String) {
         val fileName = "PocketOps-v$remoteVersionName.apk"
@@ -166,71 +160,55 @@ object UpdateManager {
         // Delete any existing file first
         if (destFile.exists()) destFile.delete()
 
-        try {
-            val request = DownloadManager.Request(Uri.parse(urlStr)).apply {
-                setTitle("PocketOps v$remoteVersionName")
-                setDescription("Downloading update...")
-                setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
-                // Download to app-private external storage so FileProvider can serve it
-                setDestinationUri(Uri.fromFile(destFile))
-                setAllowedOverMetered(true)
-                setAllowedOverRoaming(true)
-            }
+        updateState = UpdateState.Downloading(remoteVersionName, 0)
 
-            val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-            downloadId = downloadManager.enqueue(request)
-            updateState = UpdateState.Downloading(remoteVersionName, 0)
-
-            trackProgress(context, downloadManager, remoteVersionName, fileName)
-        } catch (e: Exception) {
-            e.printStackTrace()
-            Toast.makeText(context, "Download failed: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
-            updateState = UpdateState.Idle
-        }
-    }
-
-    /**
-     * Poll download progress every 500ms.
-     */
-    private fun trackProgress(context: Context, downloadManager: DownloadManager, remoteVersionName: String, fileName: String) {
         CoroutineScope(Dispatchers.IO).launch {
-            var downloading = true
-            while (downloading) {
-                val q = DownloadManager.Query().setFilterById(downloadId)
-                val cursor = downloadManager.query(q)
-                if (cursor != null && cursor.moveToFirst()) {
-                    val statusIdx = cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)
-                    val bytesIdx = cursor.getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR)
-                    val totalIdx = cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES)
+            try {
+                val url = URL(urlStr)
+                val connection = url.openConnection() as HttpURLConnection
+                connection.connectTimeout = 10000
+                connection.readTimeout = 10000
+                connection.connect()
 
-                    val status = if (statusIdx >= 0) cursor.getInt(statusIdx) else DownloadManager.STATUS_FAILED
-                    val bytesDownloaded = if (bytesIdx >= 0) cursor.getLong(bytesIdx) else 0L
-                    val bytesTotal = if (totalIdx >= 0) cursor.getLong(totalIdx) else 0L
+                val fileLength = connection.contentLength
+                val inputStream = connection.inputStream
+                val outputStream = destFile.outputStream()
 
-                    when (status) {
-                        DownloadManager.STATUS_SUCCESSFUL -> {
-                            downloading = false
-                            updateState = UpdateState.ReadyToInstall(remoteVersionName, fileName)
-                        }
-                        DownloadManager.STATUS_FAILED -> {
-                            downloading = false
-                            updateState = UpdateState.Idle
-                            hasLocalApk = hasDownloadedApk(context)
-                        }
-                        else -> {
-                            if (bytesTotal > 0) {
-                                val progress = (bytesDownloaded * 100L / bytesTotal).toInt()
-                                updateState = UpdateState.Downloading(remoteVersionName, progress)
-                            }
+                val data = ByteArray(4096)
+                var total: Long = 0
+                var count: Int
+                var lastProgressUpdate = -1
+                var lastUpdateTime = 0L
+
+                while (inputStream.read(data).also { count = it } != -1) {
+                    total += count
+                    outputStream.write(data, 0, count)
+                    if (fileLength > 0) {
+                        val progress = (total * 100 / fileLength).toInt()
+                        val now = System.currentTimeMillis()
+                        // Throttle progress updates to avoid UI stutter (at most once every 100ms or on progress change)
+                        if (progress != lastProgressUpdate && now - lastUpdateTime > 100) {
+                            updateState = UpdateState.Downloading(remoteVersionName, progress)
+                            lastProgressUpdate = progress
+                            lastUpdateTime = now
                         }
                     }
-                } else {
-                    downloading = false
-                    updateState = UpdateState.Idle
-                    hasLocalApk = hasDownloadedApk(context)
                 }
-                cursor?.close()
-                delay(500)
+
+                outputStream.flush()
+                outputStream.close()
+                inputStream.close()
+                connection.disconnect()
+
+                updateState = UpdateState.ReadyToInstall(remoteVersionName, fileName)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                if (destFile.exists()) destFile.delete()
+                CoroutineScope(Dispatchers.Main).launch {
+                    Toast.makeText(context, "Download failed: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                }
+                updateState = UpdateState.Idle
+                hasLocalApk = hasDownloadedApk(context)
             }
         }
     }
@@ -280,15 +258,6 @@ object UpdateManager {
                     it.delete()
                 }
             }
-            // Also clean public downloads (leftover from old versions)
-            try {
-                val publicDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-                publicDir.listFiles()?.forEach {
-                    if (it.isFile && it.name.startsWith("PocketOps-v") && it.name.endsWith(".apk")) {
-                        it.delete()
-                    }
-                }
-            } catch (_: Exception) {}
         } catch (e: Exception) {
             e.printStackTrace()
         }
