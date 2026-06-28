@@ -32,41 +32,6 @@
 
 ---
 
-## 🗺️ Application Navigation Flow
-
-```mermaid
-graph TD
-    %% Styling definitions
-    classDef entry fill:#fff,stroke:#333,stroke-width:2px,color:#000;
-    classDef blue fill:#d4ebf2,stroke:#1a5f7a,stroke-width:2px,color:#000;
-    classDef green fill:#d1e7dd,stroke:#0f5132,stroke-width:2px,color:#000;
-    classDef pink fill:#f8d7da,stroke:#842029,stroke-width:2px,color:#000;
-    classDef gray fill:#e2e3e5,stroke:#41464b,stroke-width:2px,color:#000;
-    
-    Launch([📱 App Launch]) --> Entry{Entry Type}:::entry
-    
-    %% Direct Shortcut / Tile Paths
-    Entry -->|Shortcuts / QS Tiles| Direct[⚡ Direct Action Launch]:::entry
-    Direct -->|Quick Collect| Collect[UPI / PayPal Screen]:::blue
-    Direct -->|Quick Chat| Chat[WhatsApp Screen]:::green
-    Direct -->|Quick Insta| Insta[Instagram Screen]:::pink
-    
-    %% Standard Dashboard Path
-    Entry -->|Normal Launch| Dash[🏠 Dashboard Home]:::entry
-    Dash -->|Select Tool| DashTools{Select Tool}:::entry
-    DashTools -->|Quick Collect| Collect
-    DashTools -->|Quick Chat| Chat
-    DashTools -->|Quick Insta| Insta
-    
-    %% Setup Sub-Paths
-    Collect -->|Manage IDs| Setup[⚙️ Manage Setup Screen]:::gray
-```
-
-> [!NOTE]
-> **Backstack Navigation:** The application manages transitions using a LIFO (Last-In-First-Out) state stack. Pressing the back key/arrow on any screen always pops the current state and returns you to the preceding screen cleanly (e.g., `Setup` ➔ `Quick Collect` ➔ `Dashboard` ➔ `Exit`).
-
----
-
 ## 🚀 Key Features
 
 *   **⚡ Quick Collect (UPI / PayPal)**
