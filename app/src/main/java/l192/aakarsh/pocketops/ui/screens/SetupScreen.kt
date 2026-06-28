@@ -1,6 +1,8 @@
 package l192.aakarsh.pocketops.ui.screens
 
 import android.annotation.SuppressLint
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -40,6 +42,7 @@ import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -73,7 +76,7 @@ fun SetupScreen(
     var dropdownExpanded by remember { mutableStateOf(false) }
 
     val idTypeLabel = if (usePaypal) "PayPal ID" else "UPI ID"
-    val idPlaceholder = if (usePaypal) "username" else "name@bank"
+    val idPlaceholder = if (usePaypal) "192aakarsh" else "name@bank"
     val idIcon = if (usePaypal) R.drawable.ic_paypal else R.drawable.ic_upi_pay
 
     Column(
@@ -307,6 +310,31 @@ fun SetupScreen(
                         style = MaterialTheme.typography.bodySmall,
                         modifier = Modifier.padding(start = 16.dp, top = 4.dp)
                     )
+                }
+                if (usePaypal) {
+                    val context = LocalContext.current
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 2.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Need a PayPal.me link?",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        TextButton(
+                            onClick = {
+                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.paypal.me"))
+                                context.startActivity(intent)
+                            }
+                        ) {
+                            Text(
+                                text = "Create PayPal.me ID first",
+                                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold)
+                            )
+                        }
+                    }
                 }
             }
         } else {
