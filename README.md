@@ -41,6 +41,7 @@
     *   Supports saving, managing, and switching between multiple payment IDs.
 *   **💬 Quick Chat**
     *   Start chat windows directly with any phone number without saving it to your contacts list.
+    *   **Built-in QR Scanner**: Scan WhatsApp chat links or plain number QR codes directly using the custom camera view to open them instantly.
 *   **📸 Quick Insta**
     *   Type an Instagram username (auto-cleans leading `@` symbols) and open their profile directly in the official app or browser, or use Direct Search.
 *   **⚙️ System Integrations**

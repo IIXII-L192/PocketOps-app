@@ -27,6 +27,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
@@ -75,6 +76,7 @@ fun QuickChatScreen(
     var phoneNumber by remember { mutableStateOf("") }
     var searchQuery by remember { mutableStateOf("") }
     var showClearHistoryConfirm by remember { mutableStateOf(false) }
+    var showScanner by remember { mutableStateOf(false) }
 
     // Comprehensive list of countries sorted alphabetically by name
     val countries = remember {
@@ -635,11 +637,35 @@ fun QuickChatScreen(
                     }
                 },
                 trailingIcon = {
-                    if (phoneNumber.isNotEmpty()) {
-                        IconButton(onClick = { phoneNumber = "" }) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(end = 8.dp)
+                    ) {
+                        if (phoneNumber.isNotEmpty()) {
+                            IconButton(
+                                onClick = { phoneNumber = "" },
+                                modifier = Modifier.size(36.dp)
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_close),
+                                    contentDescription = "Clear",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(4.dp))
+                        }
+                        IconButton(
+                            onClick = { showScanner = true },
+                            colors = IconButtonDefaults.iconButtonColors(
+                                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                            ),
+                            modifier = Modifier.size(36.dp)
+                        ) {
                             Icon(
-                                painter = painterResource(R.drawable.ic_close),
-                                contentDescription = "Clear"
+                                painter = painterResource(R.drawable.ic_camera),
+                                contentDescription = "Scan WhatsApp QR Code",
+                                modifier = Modifier.size(18.dp)
                             )
                         }
                     }
@@ -647,6 +673,16 @@ fun QuickChatScreen(
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
+
+            if (showScanner) {
+                QrScannerDialog(
+                    onDismiss = { showScanner = false },
+                    onQrScanned = { num ->
+                        phoneNumber = num
+                        showScanner = false
+                    }
+                )
+            }
 
             Spacer(modifier = Modifier.height(20.dp))
 
