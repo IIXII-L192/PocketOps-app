@@ -1,6 +1,11 @@
 package l192.aakarsh.pocketops.ui.screens
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Build
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -216,6 +221,146 @@ fun SettingsScreen(
         }
 
         Spacer(modifier = Modifier.height(24.dp))
+
+        // --- Help & Feedback Section ---
+        Text(
+            text = "Help & Feedback",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        Text(
+            text = "Get support or request new features directly on GitHub.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Column(
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            val context = LocalContext.current
+            val openUrl = { url: String ->
+                try {
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                    context.startActivity(intent)
+                } catch (e: Exception) { }
+            }
+
+            SettingsLinkCard(
+                title = "Report a Bug",
+                iconRes = R.drawable.ic_bug,
+                iconColor = Color(0xFFFF0000),
+                onClick = { openUrl("https://github.com/IIXII-L192/PocketOps-app/issues") }
+            )
+
+            SettingsLinkCard(
+                title = "Feedback",
+                iconRes = R.drawable.ic_feedback,
+                iconColor = Color(0xFFFFD500),
+                onClick = { openUrl("https://github.com/IIXII-L192/PocketOps-app/discussions/categories/ideas") }
+            )
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // --- About Section ---
+        Text(
+            text = "About",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        Text(
+            text = "PocketOps app details and developer support.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        val context = LocalContext.current
+        SettingsLinkCard(
+            title = "Donate",
+            description = "Support Me",
+            iconRes = R.drawable.ic_donate,
+            iconColor = Color(0xFFFA0557),
+            onClick = {
+                try {
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://bmad192.vercel.app"))
+                    context.startActivity(intent)
+                } catch (e: Exception) { }
+            }
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // --- Footer Credits ---
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = "Made with 💖 by Aakarsh(IIXII-L192)",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                textAlign = TextAlign.Center
+            )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+    }
+}
+
+@Composable
+fun SettingsLinkCard(
+    title: String,
+    description: String? = null,
+    iconRes: Int,
+    iconColor: Color,
+    onClick: () -> Unit
+) {
+    Card(
+        onClick = onClick,
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        border = BorderStroke(
+            width = 1.dp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f)
+        ),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                painter = painterResource(iconRes),
+                contentDescription = null,
+                tint = iconColor,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(modifier = Modifier.width(16.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                if (!description.isNullOrBlank()) {
+                    Text(
+                        text = description,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                    )
+                }
+            }
+        }
     }
 }
 

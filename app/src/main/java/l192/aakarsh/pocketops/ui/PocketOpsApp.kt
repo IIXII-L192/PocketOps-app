@@ -541,21 +541,6 @@ fun PocketOpsContent(
                     }
                 }
 
-                val context = LocalContext.current
-                Spacer(modifier = Modifier.height(16.dp))
-                Button(
-                    onClick = {
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://bmad192.vercel.app/"))
-                        context.startActivity(intent)
-                    },
-                    shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp)
-                ) {
-                    Text("Support Me", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
-                }
-                
                 Spacer(modifier = Modifier.height(6.dp))
                 Icon(
                     painter = painterResource(R.drawable.ic_iixii),
