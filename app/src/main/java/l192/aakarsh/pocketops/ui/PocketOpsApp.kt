@@ -3,6 +3,8 @@ package l192.aakarsh.pocketops.ui
 import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
@@ -115,6 +117,60 @@ fun PocketOpsApp(
 
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+
+    val importLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            scope.launch {
+                try {
+                    val inputStream = context.contentResolver.openInputStream(uri)
+                    val jsonString = inputStream?.bufferedReader()?.use { it.readText() }
+                    if (jsonString != null) {
+                        val success = userStore.importFromJson(jsonString)
+                        if (success) {
+                            android.widget.Toast.makeText(context, "Backup restored successfully!", android.widget.Toast.LENGTH_SHORT).show()
+                        } else {
+                            android.widget.Toast.makeText(context, "Invalid backup format!", android.widget.Toast.LENGTH_LONG).show()
+                        }
+                    } else {
+                        android.widget.Toast.makeText(context, "Failed to read file", android.widget.Toast.LENGTH_SHORT).show()
+                    }
+                } catch (e: Exception) {
+                    android.widget.Toast.makeText(context, "Error importing: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+    }
+
+    val exportBackup: () -> Unit = {
+        scope.launch {
+            try {
+                val jsonString = userStore.exportToJson()
+                val sdf = java.text.SimpleDateFormat("ddMMyyyy", java.util.Locale.getDefault())
+                val dateStr = sdf.format(java.util.Date())
+                val fileName = "PocketOps_Backup_$dateStr.json"
+                
+                val file = java.io.File(context.cacheDir, fileName)
+                file.writeText(jsonString)
+                
+                val uri = androidx.core.content.FileProvider.getUriForFile(
+                    context,
+                    "${context.packageName}.provider",
+                    file
+                )
+                
+                val intent = Intent(Intent.ACTION_SEND).apply {
+                    type = "application/json"
+                    putExtra(Intent.EXTRA_STREAM, uri)
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+                context.startActivity(Intent.createChooser(intent, "Export PocketOps Backup"))
+            } catch (e: Exception) {
+                android.widget.Toast.makeText(context, "Error exporting: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
+            }
+        }
+    }
     
     val navigationStack = remember { mutableStateListOf<PocketOpsUiState>(PocketOpsUiState.Dashboard) }
     val uiState = navigationStack.lastOrNull() ?: PocketOpsUiState.Dashboard
@@ -281,7 +337,9 @@ fun PocketOpsApp(
         },
         onQrShown = onQrShown,
         onRestoreBrightness = onRestoreBrightness,
-        onDismiss = onDismiss
+        onDismiss = onDismiss,
+        onExport = exportBackup,
+        onImport = { importLauncher.launch("application/json") }
     )
 }
 
@@ -313,7 +371,9 @@ fun PocketOpsContent(
     onToolSelected: (QuickTool) -> Unit = {},
     onQrShown: () -> Unit = {},
     onRestoreBrightness: () -> Unit = {},
-    onDismiss: () -> Unit = {}
+    onDismiss: () -> Unit = {},
+    onExport: () -> Unit = {},
+    onImport: () -> Unit = {}
 ) {
     BasicAlertDialog(
         onDismissRequest = { onDismiss() },
@@ -474,7 +534,9 @@ fun PocketOpsContent(
                                 themeMode = themeMode,
                                 dynamicColor = dynamicColor,
                                 onChangeThemeMode = onChangeThemeMode,
-                                onToggleDynamicColor = onToggleDynamicColor
+                                onToggleDynamicColor = onToggleDynamicColor,
+                                onExport = onExport,
+                                onImport = onImport
                             )
                     }
                 }
