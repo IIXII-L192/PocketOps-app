@@ -484,7 +484,9 @@ fun PocketOpsContent(
                 AnimatedContent(
                     targetState = uiState,
                     label = "screenTransition",
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f, fill = false)
                 ) { state ->
                     when (state) {
                         PocketOpsUiState.Dashboard ->

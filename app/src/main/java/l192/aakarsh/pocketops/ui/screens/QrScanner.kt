@@ -16,6 +16,7 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -246,6 +247,38 @@ fun ScannerOverlayView(onClose: () -> Unit) {
                 end = Offset(right - 16.dp.toPx(), laserY),
                 strokeWidth = 4.dp.toPx()
             )
+        }
+
+        Surface(
+            color = Color.Black.copy(alpha = 0.62f),
+            shape = RoundedCornerShape(50),
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .padding(top = 72.dp)
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Surface(
+                    shape = RoundedCornerShape(50),
+                    color = Color.White,
+                    modifier = Modifier.size(36.dp)
+                ) {
+                    Image(
+                        painter = painterResource(R.mipmap.ic_launcher_round),
+                        contentDescription = "PocketOps logo",
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+                Text(
+                    text = "PocketOps",
+                    color = Color.White,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
 
         // Close button
