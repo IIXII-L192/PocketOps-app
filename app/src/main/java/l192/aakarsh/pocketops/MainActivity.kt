@@ -9,6 +9,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.first
@@ -26,6 +27,11 @@ class MainActivity : ComponentActivity() {
         
         handleIntent(intent)
 
+        val pendingCrash = l192.aakarsh.pocketops.utils.DiagnosticLogger.getPendingCrashLogFile(this)
+        if (pendingCrash != null) {
+            shareLogFile(pendingCrash)
+        }
+
         setContent {
             val themeMode by userStore.themeMode.collectAsState(initial = "SYSTEM")
             val dynamicColor by userStore.dynamicColor.collectAsState(initial = false)
@@ -34,6 +40,10 @@ class MainActivity : ComponentActivity() {
                 "DARK" -> true
                 else -> isSystemInDarkTheme()
             }
+            
+            var isLoggingActive by androidx.compose.runtime.remember {
+                androidx.compose.runtime.mutableStateOf(l192.aakarsh.pocketops.utils.DiagnosticLogger.isActive())
+            }
 
             PocketOpsTheme(darkTheme = isDarkTheme, dynamicColor = dynamicColor) {
                 PocketOpsApp(
@@ -41,6 +51,19 @@ class MainActivity : ComponentActivity() {
                     shortcutAction = shortcutAction,
                     themeMode = themeMode,
                     dynamicColor = dynamicColor,
+                    isLoggingActive = isLoggingActive,
+                    onToggleLogging = {
+                        if (isLoggingActive) {
+                            val logFile = l192.aakarsh.pocketops.utils.DiagnosticLogger.stopLogging(this@MainActivity)
+                            if (logFile != null) {
+                                shareLogFile(logFile)
+                            }
+                            isLoggingActive = false
+                        } else {
+                            l192.aakarsh.pocketops.utils.DiagnosticLogger.startLogging(this@MainActivity)
+                            isLoggingActive = true
+                        }
+                    },
                     onToggleDynamicColor = { enabled ->
                         lifecycleScope.launch {
                             userStore.saveDynamicColor(enabled)
@@ -56,6 +79,21 @@ class MainActivity : ComponentActivity() {
                     onDismiss = { finish() }
                 )
             }
+        }
+    }
+
+    private fun shareLogFile(file: java.io.File) {
+        try {
+            val authority = "${packageName}.provider"
+            val uri = androidx.core.content.FileProvider.getUriForFile(this, authority, file)
+            val intent = Intent(Intent.ACTION_SEND).apply {
+                type = "application/json"
+                putExtra(Intent.EXTRA_STREAM, uri)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            startActivity(Intent.createChooser(intent, "Share Diagnostic Log"))
+        } catch (e: Exception) {
+            android.widget.Toast.makeText(this, "Error sharing log: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
         }
     }
 

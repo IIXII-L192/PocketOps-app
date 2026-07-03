@@ -9,9 +9,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -33,6 +35,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.RoundRect
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.verticalScroll
 import l192.aakarsh.pocketops.R
 
@@ -40,6 +55,8 @@ import l192.aakarsh.pocketops.R
 fun SettingsScreen(
     themeMode: String,
     dynamicColor: Boolean,
+    isLoggingActive: Boolean,
+    onToggleLogging: () -> Unit,
     onChangeThemeMode: (String) -> Unit,
     onToggleDynamicColor: (Boolean) -> Unit,
     onExport: () -> Unit,
@@ -266,6 +283,49 @@ fun SettingsScreen(
                 iconColor = Color(0xFFFFD500),
                 onClick = { openUrl("https://github.com/IIXII-L192/PocketOps-app/discussions/categories/ideas") }
             )
+
+            Card(
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                ),
+                border = BorderStroke(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f)
+                ),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier.padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_terminal),
+                        contentDescription = null,
+                        tint = Color(0xFF23AF31),
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Diagnostic Log",
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = if (isLoggingActive) "Recording active process logcat..." else "Record diagnostic logs for developer crash reports.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    RecorderButton(
+                        isRecording = isLoggingActive,
+                        onClick = onToggleLogging
+                    )
+                }
+            }
         }
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -334,6 +394,104 @@ fun SettingsScreen(
         Spacer(modifier = Modifier.height(8.dp))
     }
 }
+
+@Composable
+fun RecorderButton(
+    isRecording: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val transition = updateTransition(targetState = isRecording, label = "recorderTransition")
+    
+    val innerShapeProgress by transition.animateFloat(
+        transitionSpec = { tween(250) },
+        label = "innerShape"
+    ) { recording ->
+        if (recording) 0.35f else 1.0f
+    }
+
+    val innerSizeProgress by transition.animateFloat(
+        transitionSpec = { tween(250) },
+        label = "innerSize"
+    ) { recording ->
+        if (recording) 0.45f else 0.55f
+    }
+
+    val infiniteTransition = rememberInfiniteTransition(label = "dashRotation")
+    val dashPhase by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(4000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "dashPhase"
+    )
+
+    val activeColor = MaterialTheme.colorScheme.onSurface
+    val recordColor = Color(0xFFFF3B30)
+
+    Box(
+        modifier = modifier
+            .size(36.dp)
+            .clickable(
+                onClick = onClick,
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val center = Offset(size.width / 2, size.height / 2)
+            val outerRadius = size.width / 2 - 2.dp.toPx()
+            
+            if (isRecording) {
+                drawArc(
+                    color = activeColor,
+                    startAngle = dashPhase,
+                    sweepAngle = 270f,
+                    useCenter = false,
+                    topLeft = Offset(center.x - outerRadius, center.y - outerRadius),
+                    size = size.copy(width = outerRadius * 2, height = outerRadius * 2),
+                    style = Stroke(
+                        width = 2.dp.toPx(),
+                        pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(
+                            floatArrayOf(12.dp.toPx(), 8.dp.toPx()),
+                            0f
+                        )
+                    )
+                )
+            } else {
+                drawCircle(
+                    color = activeColor.copy(alpha = 0.8f),
+                    radius = outerRadius,
+                    center = center,
+                    style = Stroke(width = 2.dp.toPx())
+                )
+            }
+
+            val innerSize = size.width * innerSizeProgress
+            val rect = Rect(
+                center.x - innerSize / 2,
+                center.y - innerSize / 2,
+                center.x + innerSize / 2,
+                center.y + innerSize / 2
+            )
+            val cornerRadius = (innerSize / 2) * innerShapeProgress
+
+            val path = Path().apply {
+                addRoundRect(
+                    RoundRect(
+                        rect = rect,
+                        cornerRadius = CornerRadius(cornerRadius, cornerRadius)
+                    )
+                )
+            }
+            drawPath(path = path, color = recordColor)
+        }
+    }
+}
+
 
 @Composable
 fun SettingsLinkCard(

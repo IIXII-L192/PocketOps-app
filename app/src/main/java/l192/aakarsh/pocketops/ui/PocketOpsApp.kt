@@ -99,6 +99,8 @@ fun PocketOpsApp(
     shortcutAction: String? = null,
     themeMode: String = "SYSTEM",
     dynamicColor: Boolean = false,
+    isLoggingActive: Boolean = false,
+    onToggleLogging: () -> Unit = {},
     onToggleDynamicColor: (Boolean) -> Unit = {},
     onChangeThemeMode: (String) -> Unit = {},
     onQrShown: () -> Unit = {},
@@ -345,7 +347,9 @@ fun PocketOpsApp(
         onRestoreBrightness = onRestoreBrightness,
         onDismiss = onDismiss,
         onExport = exportBackup,
-        onImport = { importLauncher.launch("application/json") }
+        onImport = { importLauncher.launch("application/json") },
+        isLoggingActive = isLoggingActive,
+        onToggleLogging = onToggleLogging
     )
 }
 
@@ -379,7 +383,9 @@ fun PocketOpsContent(
     onRestoreBrightness: () -> Unit = {},
     onDismiss: () -> Unit = {},
     onExport: () -> Unit = {},
-    onImport: () -> Unit = {}
+    onImport: () -> Unit = {},
+    isLoggingActive: Boolean = false,
+    onToggleLogging: () -> Unit = {}
 ) {
     Dialog(
         onDismissRequest = { onDismiss() },
@@ -550,6 +556,8 @@ fun PocketOpsContent(
                             SettingsScreen(
                                 themeMode = themeMode,
                                 dynamicColor = dynamicColor,
+                                isLoggingActive = isLoggingActive,
+                                onToggleLogging = onToggleLogging,
                                 onChangeThemeMode = onChangeThemeMode,
                                 onToggleDynamicColor = onToggleDynamicColor,
                                 onExport = onExport,
