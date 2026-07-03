@@ -278,7 +278,7 @@ fun SettingsScreen(
             color = MaterialTheme.colorScheme.onSurface
         )
         Text(
-            text = "PocketOps app details and developer support.",
+            text = "PocketOps developer details and support.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -286,18 +286,35 @@ fun SettingsScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         val context = LocalContext.current
-        SettingsLinkCard(
-            title = "Donate",
-            description = "Support Me",
-            iconRes = R.drawable.ic_donate,
-            iconColor = Color(0xFFFA0557),
-            onClick = {
-                try {
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://bmad192.vercel.app"))
-                    context.startActivity(intent)
-                } catch (e: Exception) { }
-            }
-        )
+        Column(
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            SettingsLinkCard(
+                title = "Donate",
+                description = "Support Me",
+                iconRes = R.drawable.ic_donate,
+                iconColor = Color(0xFFFA0557),
+                onClick = {
+                    try {
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://bmad192.vercel.app"))
+                        context.startActivity(intent)
+                    } catch (e: Exception) { }
+                }
+            )
+
+            SettingsLinkCard(
+                title = "Contact",
+                iconRes = R.drawable.ic_envelope,
+                iconColor = Color(0xFFFF9E7A),
+                onClick = {
+                    try {
+                        val intent = Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:192aakarsh@gmail.com"))
+                        context.startActivity(intent)
+                    } catch (e: Exception) { }
+                }
+            )
+        }
 
         Spacer(modifier = Modifier.height(24.dp))
 

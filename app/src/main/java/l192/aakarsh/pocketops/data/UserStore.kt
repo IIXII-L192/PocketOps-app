@@ -10,6 +10,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "user_settings")
 
@@ -35,6 +36,9 @@ class UserStore(private val context: Context) {
         val CHAT_DEFAULT_ISO_KEY = stringPreferencesKey("chat_default_iso")
         val CHAT_HISTORY_KEY = stringPreferencesKey("chat_history")
         val CHAT_PAUSE_HISTORY_KEY = booleanPreferencesKey("chat_pause_history")
+
+        // Quick Clip Additions
+        val CLIPBOARD_PAUSE_KEY = booleanPreferencesKey("clipboard_pause")
     }
 
     val upiIds: Flow<List<String>> = context.dataStore.data.map { preferences ->
@@ -182,17 +186,67 @@ class UserStore(private val context: Context) {
         preferences[CHAT_DEFAULT_ISO_KEY] ?: "IN"
     }
 
-    val chatHistory: Flow<List<String>> = context.dataStore.data.map { preferences ->
-        val raw = preferences[CHAT_HISTORY_KEY]
-        if (!raw.isNullOrBlank()) {
-            raw.split(";").filter { it.isNotBlank() }
-        } else {
-            emptyList()
+    private val quickChatDir = java.io.File(context.filesDir, "QuickChat")
+    private val quickChatFile = java.io.File(quickChatDir, "history.txt")
+
+    private val _chatHistoryFlow = kotlinx.coroutines.flow.MutableStateFlow<List<String>>(emptyList())
+    val chatHistory: Flow<List<String>> = _chatHistoryFlow
+
+    private val clipboardDir = java.io.File(context.filesDir, "Clipboard")
+    private val clipboardMetadataFile = java.io.File(clipboardDir, "metadata.json")
+
+    data class ClipItem(
+        val id: String,
+        val type: String, // "text" or "image"
+        val content: String, // text content or filename
+        val timestamp: Long
+    )
+
+    private val _clipItemsFlow = kotlinx.coroutines.flow.MutableStateFlow<List<ClipItem>>(emptyList())
+    val clipItems: Flow<List<ClipItem>> = _clipItemsFlow
+
+    init {
+        loadChatHistoryFromFile()
+        loadClipboardItems()
+
+        // Migrate from dataStore if needed
+        @OptIn(kotlinx.coroutines.DelicateCoroutinesApi::class)
+        kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            try {
+                val legacy = context.dataStore.data.first()[CHAT_HISTORY_KEY]
+                if (!legacy.isNullOrBlank() && !quickChatFile.exists()) {
+                    if (!quickChatDir.exists()) quickChatDir.mkdirs()
+                    quickChatFile.writeText(legacy)
+                    val list = legacy.split(";").filter { it.isNotBlank() }
+                    _chatHistoryFlow.value = list
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    private fun loadChatHistoryFromFile() {
+        try {
+            if (!quickChatDir.exists()) {
+                quickChatDir.mkdirs()
+            }
+            if (quickChatFile.exists()) {
+                val lines = quickChatFile.readText()
+                val list = lines.split(";").filter { it.isNotBlank() }
+                _chatHistoryFlow.value = list
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
     val chatPauseHistory: Flow<Boolean> = context.dataStore.data.map { preferences ->
         preferences[CHAT_PAUSE_HISTORY_KEY] ?: false
+    }
+
+    val clipboardPause: Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[CLIPBOARD_PAUSE_KEY] ?: false
     }
 
     suspend fun saveChatDefaultCountry(code: String, iso: String) {
@@ -203,24 +257,32 @@ class UserStore(private val context: Context) {
     }
 
     suspend fun saveChatNumberToHistory(number: String, flag: String) {
-        context.dataStore.edit { preferences ->
-            val paused = preferences[CHAT_PAUSE_HISTORY_KEY] ?: false
-            if (!paused) {
-                val current = (preferences[CHAT_HISTORY_KEY] ?: "")
-                    .split(";")
-                    .filter { it.isNotBlank() }
-                    .toMutableList()
-                val entry = "$number:$flag"
-                current.remove(entry)
-                current.add(0, entry)
-                preferences[CHAT_HISTORY_KEY] = current.take(20).joinToString(";")
+        val paused = context.dataStore.data.first()[CHAT_PAUSE_HISTORY_KEY] ?: false
+        if (!paused) {
+            val current = _chatHistoryFlow.value.toMutableList()
+            val entry = "$number:$flag"
+            current.remove(entry)
+            current.add(0, entry)
+            val updated = current.take(20)
+            _chatHistoryFlow.value = updated
+
+            try {
+                if (!quickChatDir.exists()) quickChatDir.mkdirs()
+                quickChatFile.writeText(updated.joinToString(";"))
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
     }
 
     suspend fun clearChatHistory() {
-        context.dataStore.edit { preferences ->
-            preferences.remove(CHAT_HISTORY_KEY)
+        _chatHistoryFlow.value = emptyList()
+        try {
+            if (quickChatFile.exists()) {
+                quickChatFile.delete()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
@@ -230,18 +292,183 @@ class UserStore(private val context: Context) {
         }
     }
 
+    suspend fun saveClipboardPause(pause: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[CLIPBOARD_PAUSE_KEY] = pause
+        }
+    }
+
     suspend fun saveDynamicColor(enabled: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[DYNAMIC_COLOR_KEY] = enabled
         }
     }
 
+    fun loadClipboardItems() {
+        try {
+            if (!clipboardDir.exists()) {
+                clipboardDir.mkdirs()
+            }
+            if (clipboardMetadataFile.exists()) {
+                val jsonStr = clipboardMetadataFile.readText()
+                val jsonArray = org.json.JSONArray(jsonStr)
+                val list = mutableListOf<ClipItem>()
+                for (i in 0 until jsonArray.length()) {
+                    val obj = jsonArray.getJSONObject(i)
+                    list.add(
+                        ClipItem(
+                            id = obj.getString("id"),
+                            type = obj.getString("type"),
+                            content = obj.getString("content"),
+                            timestamp = obj.getLong("timestamp")
+                        )
+                    )
+                }
+                _clipItemsFlow.value = list
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    private fun saveClipboardItems(list: List<ClipItem>) {
+        _clipItemsFlow.value = list
+        try {
+            if (!clipboardDir.exists()) {
+                clipboardDir.mkdirs()
+            }
+            val jsonArray = org.json.JSONArray()
+            for (item in list) {
+                val obj = org.json.JSONObject()
+                obj.put("id", item.id)
+                obj.put("type", item.type)
+                obj.put("content", item.content)
+                obj.put("timestamp", item.timestamp)
+                jsonArray.put(obj)
+            }
+            clipboardMetadataFile.writeText(jsonArray.toString(4))
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    fun addTextToClipboardHistory(text: String) {
+        val cleanText = text.trim()
+        if (cleanText.isEmpty()) return
+        val currentList = _clipItemsFlow.value.toMutableList()
+
+        val existing = currentList.find { it.type == "text" && it.content == cleanText }
+        if (existing != null) {
+            currentList.remove(existing)
+            currentList.add(0, existing.copy(timestamp = System.currentTimeMillis()))
+        } else {
+            currentList.add(
+                0,
+                ClipItem(
+                    id = System.currentTimeMillis().toString(),
+                    type = "text",
+                    content = cleanText,
+                    timestamp = System.currentTimeMillis()
+                )
+            )
+        }
+        saveClipboardItems(currentList)
+    }
+
+    fun addImageToClipboardHistory(uri: android.net.Uri) {
+        try {
+            val contentResolver = context.contentResolver
+            val id = System.currentTimeMillis().toString()
+            val filename = "img_$id.png"
+            val destFile = java.io.File(clipboardDir, filename)
+
+            contentResolver.openInputStream(uri)?.use { input ->
+                destFile.outputStream().use { output ->
+                    input.copyTo(output)
+                }
+            }
+
+            val currentList = _clipItemsFlow.value.toMutableList()
+            currentList.add(
+                0,
+                ClipItem(
+                    id = id,
+                    type = "image",
+                    content = filename,
+                    timestamp = System.currentTimeMillis()
+                )
+            )
+            saveClipboardItems(currentList)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    fun deleteClipItem(item: ClipItem) {
+        val currentList = _clipItemsFlow.value.toMutableList()
+        currentList.remove(item)
+        if (item.type == "image") {
+            try {
+                val file = java.io.File(clipboardDir, item.content)
+                if (file.exists()) {
+                    file.delete()
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+        saveClipboardItems(currentList)
+    }
+
+    fun clearAllClipItems() {
+        val currentList = _clipItemsFlow.value.toList()
+        for (item in currentList) {
+            if (item.type == "image") {
+                try {
+                    val file = java.io.File(clipboardDir, item.content)
+                    if (file.exists()) {
+                        file.delete()
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+        }
+        saveClipboardItems(emptyList())
+        try {
+            if (clipboardMetadataFile.exists()) {
+                clipboardMetadataFile.delete()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    fun copyImageToClipboard(filename: String) {
+        try {
+            val file = java.io.File(clipboardDir, filename)
+            if (file.exists()) {
+                val uri = androidx.core.content.FileProvider.getUriForFile(
+                    context,
+                    "${context.packageName}.provider",
+                    file
+                )
+                val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                val clip = android.content.ClipData.newUri(context.contentResolver, "Image", uri)
+                clipboard.setPrimaryClip(clip)
+                android.widget.Toast.makeText(context, "Image copied to clipboard", android.widget.Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
     suspend fun exportToJson(): String {
         val json = org.json.JSONObject()
         json.put("magic", "PocketOps by Aakarsh(IIXII-L192)")
-        
+
         val prefs = context.dataStore.data.first()
-        
+
         prefs[UPI_IDS_KEY]?.let { json.put("upi_ids", it) }
         prefs[UPI_ID_KEY]?.let { json.put("upi_id", it) }
         prefs[DEFAULT_UPI_ID_KEY]?.let { json.put("default_upi_id", it) }
@@ -255,9 +482,9 @@ class UserStore(private val context: Context) {
         prefs[USE_PAYPAL_KEY]?.let { json.put("use_paypal", it) }
         prefs[CHAT_DEFAULT_CODE_KEY]?.let { json.put("chat_default_code", it) }
         prefs[CHAT_DEFAULT_ISO_KEY]?.let { json.put("chat_default_iso", it) }
-        prefs[CHAT_HISTORY_KEY]?.let { json.put("chat_history", it) }
         prefs[CHAT_PAUSE_HISTORY_KEY]?.let { json.put("chat_pause_history", it) }
-        
+        prefs[CLIPBOARD_PAUSE_KEY]?.let { json.put("clipboard_pause", it) }
+
         return json.toString(4)
     }
 
@@ -281,9 +508,12 @@ class UserStore(private val context: Context) {
                 if (json.has("use_paypal")) preferences[USE_PAYPAL_KEY] = json.getBoolean("use_paypal")
                 if (json.has("chat_default_code")) preferences[CHAT_DEFAULT_CODE_KEY] = json.getString("chat_default_code")
                 if (json.has("chat_default_iso")) preferences[CHAT_DEFAULT_ISO_KEY] = json.getString("chat_default_iso")
-                if (json.has("chat_history")) preferences[CHAT_HISTORY_KEY] = json.getString("chat_history")
                 if (json.has("chat_pause_history")) preferences[CHAT_PAUSE_HISTORY_KEY] = json.getBoolean("chat_pause_history")
+                if (json.has("clipboard_pause")) preferences[CLIPBOARD_PAUSE_KEY] = json.getBoolean("clipboard_pause")
             }
+            // Reload clipboard from disk if imported
+            loadClipboardItems()
+            loadChatHistoryFromFile()
             return true
         } catch (e: Exception) {
             e.printStackTrace()

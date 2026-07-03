@@ -44,6 +44,9 @@
     *   **Built-in QR Scanner**: Scan WhatsApp chat links or plain number QR codes directly using the custom camera view to open them instantly.
 *   **📸 Quick Insta**
     *   Type an Instagram username (auto-cleans leading `@` symbols) and open their profile directly in the official app or browser, or use Direct Search.
+*   **📋 Quick Clip**
+    *   Smart clipboard history and manager. Retains text and image notes copied while using the app or when active in the foreground.
+    *   Pane-based action views to copy back to clipboard, pause/resume registry, delete, or clear all history.
 *   **⚙️ System Integrations**
     *   *Quick Settings Tile*: Access the PocketOps utility drawer instantly from anywhere.
     *   *Launcher Shortcuts*: Long-press the launcher icon to jump straight into UPI, Chat, or Instagram.
@@ -56,6 +59,7 @@ PocketOps adapts contextually to your workflow. The entire interface shifts its 
 *   🟢 **Emerald Green Theme**: Activates when Quick Chat is selected.
 *   🌸 **Expressive Pink Theme**: Activates when Quick Instagram is selected.
 *   🔹 **Dynamic Blue Theme**: Activates when Quick UPI is selected.
+*   🟡 **Yellow Theme**: Activates when Quick Clip is selected.
 *   🎨 **Device Theme-Aware**: Fully follows your system's Light/Dark mode settings.
 
 ---

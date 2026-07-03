@@ -71,6 +71,7 @@ import l192.aakarsh.pocketops.ui.screens.QuickTool
 import l192.aakarsh.pocketops.ui.screens.SetupScreen
 import l192.aakarsh.pocketops.ui.screens.ShowQrScreen
 import l192.aakarsh.pocketops.ui.screens.SettingsScreen
+import l192.aakarsh.pocketops.ui.screens.QuickClipScreen
 import l192.aakarsh.pocketops.utils.QRCodeGenerator
 import l192.aakarsh.pocketops.utils.UpdateManager
 import l192.aakarsh.pocketops.utils.UpdateState
@@ -85,6 +86,7 @@ sealed interface PocketOpsUiState {
 
     data object WhatsApp : PocketOpsUiState
     data object Instagram : PocketOpsUiState
+    data object Clipboard : PocketOpsUiState
     data object Settings : PocketOpsUiState
 }
 
@@ -332,6 +334,7 @@ fun PocketOpsApp(
                 }
                 QuickTool.WHATSAPP -> PocketOpsUiState.WhatsApp
                 QuickTool.INSTAGRAM -> PocketOpsUiState.Instagram
+                QuickTool.CLIPBOARD -> PocketOpsUiState.Clipboard
             }
             navigateTo(targetState)
         },
@@ -427,6 +430,7 @@ fun PocketOpsContent(
                         text = when (uiState) {
                             PocketOpsUiState.WhatsApp -> if (selectingCountry) "Select Country" else if (showChatSettings) "Chat Settings" else "Quick Chat"
                             PocketOpsUiState.Instagram -> "Quick Insta"
+                            PocketOpsUiState.Clipboard -> "Quick Clip"
                             PocketOpsUiState.Settings -> "Settings"
                             is PocketOpsUiState.Setup,
                             is PocketOpsUiState.EnterAmount,
@@ -484,9 +488,11 @@ fun PocketOpsContent(
                 AnimatedContent(
                     targetState = uiState,
                     label = "screenTransition",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f, fill = false)
+                    transitionSpec = {
+                        fadeIn(animationSpec = tween(180)) togetherWith
+                                fadeOut(animationSpec = tween(180))
+                    },
+                    modifier = Modifier.fillMaxWidth()
                 ) { state ->
                     when (state) {
                         PocketOpsUiState.Dashboard ->
@@ -531,6 +537,11 @@ fun PocketOpsContent(
                             )
                         PocketOpsUiState.Instagram ->
                             QuickInstaScreen(onDismiss = onDismiss)
+                        PocketOpsUiState.Clipboard ->
+                            QuickClipScreen(
+                                userStore = userStore,
+                                onDismiss = onDismiss
+                            )
                         PocketOpsUiState.Settings ->
                             SettingsScreen(
                                 themeMode = themeMode,

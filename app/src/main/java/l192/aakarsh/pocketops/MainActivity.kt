@@ -11,6 +11,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.first
 import l192.aakarsh.pocketops.data.UserStore
 import l192.aakarsh.pocketops.ui.PocketOpsApp
 import l192.aakarsh.pocketops.ui.theme.PocketOpsTheme
@@ -96,9 +97,54 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    private var clipboardListener: android.content.ClipboardManager.OnPrimaryClipChangedListener? = null
+
     override fun onResume() {
         super.onResume()
         l192.aakarsh.pocketops.utils.UpdateManager.checkForUpdates(this)
+        
+        val userStore = UserStore(this)
+        checkClipboard(userStore)
+
+        val clipboard = getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+        clipboardListener = android.content.ClipboardManager.OnPrimaryClipChangedListener {
+            checkClipboard(userStore)
+        }
+        clipboard.addPrimaryClipChangedListener(clipboardListener)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        if (clipboardListener != null) {
+            val clipboard = getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+            clipboard.removePrimaryClipChangedListener(clipboardListener)
+            clipboardListener = null
+        }
+    }
+
+    private fun checkClipboard(userStore: UserStore) {
+        lifecycleScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            try {
+                val isPaused = userStore.clipboardPause.first()
+                if (isPaused) return@launch
+
+                val clipboard = getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                if (clipboard.hasPrimaryClip()) {
+                    val clipData = clipboard.primaryClip
+                    if (clipData != null && clipData.itemCount > 0) {
+                        val item = clipData.getItemAt(0)
+                        val text = item.text?.toString()
+                        if (!text.isNullOrBlank()) {
+                            userStore.addTextToClipboardHistory(text)
+                        } else if (item.uri != null) {
+                            userStore.addImageToClipboardHistory(item.uri)
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
     }
 
     private fun maxBrightness() {

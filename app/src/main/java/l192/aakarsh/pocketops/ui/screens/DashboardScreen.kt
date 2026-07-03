@@ -26,7 +26,7 @@ import androidx.compose.ui.unit.dp
 import l192.aakarsh.pocketops.R
 
 enum class QuickTool {
-    UPI, WHATSAPP, INSTAGRAM
+    UPI, WHATSAPP, INSTAGRAM, CLIPBOARD
 }
 
 @Composable
@@ -67,6 +67,14 @@ fun DashboardScreen(
             iconRes = R.drawable.ic_instagram,
             accentColor = if (isDark) Color(0xFFF48FB1) else Color(0xFFE91E63), // Insta Pink
             onClick = { onToolSelected(QuickTool.INSTAGRAM) }
+        )
+
+        ToolCard(
+            title = "Quick Clip",
+            description = "Smart clipboard history & manager",
+            iconRes = R.drawable.ic_clipboard,
+            accentColor = if (isDark) Color(0xFFFFE57F) else Color(0xFFFFDC00), // Clipboard Yellow
+            onClick = { onToolSelected(QuickTool.CLIPBOARD) }
         )
     }
 }
