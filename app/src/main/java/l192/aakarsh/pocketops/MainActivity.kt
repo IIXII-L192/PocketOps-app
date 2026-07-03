@@ -123,7 +123,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun checkClipboard(userStore: UserStore) {
-        lifecycleScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+        lifecycleScope.launch {
             try {
                 val isPaused = userStore.clipboardPause.first()
                 if (isPaused) return@launch
@@ -134,10 +134,15 @@ class MainActivity : ComponentActivity() {
                     if (clipData != null && clipData.itemCount > 0) {
                         val item = clipData.getItemAt(0)
                         val text = item.text?.toString()
-                        if (!text.isNullOrBlank()) {
-                            userStore.addTextToClipboardHistory(text)
-                        } else if (item.uri != null) {
-                            userStore.addImageToClipboardHistory(item.uri)
+                        val uri = item.uri
+                        if (!text.isNullOrBlank() || uri != null) {
+                            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                                if (!text.isNullOrBlank()) {
+                                    userStore.addTextToClipboardHistory(text)
+                                } else if (uri != null) {
+                                    userStore.addImageToClipboardHistory(uri)
+                                }
+                            }
                         }
                     }
                 }

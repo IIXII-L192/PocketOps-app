@@ -14,6 +14,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -489,8 +490,9 @@ fun PocketOpsContent(
                     targetState = uiState,
                     label = "screenTransition",
                     transitionSpec = {
-                        fadeIn(animationSpec = tween(180)) togetherWith
-                                fadeOut(animationSpec = tween(180))
+                        fadeIn(animationSpec = tween(150)) togetherWith
+                                fadeOut(animationSpec = tween(150)) using
+                                SizeTransform(clip = false) { _, _ -> tween(150) }
                     },
                     modifier = Modifier.fillMaxWidth()
                 ) { state ->

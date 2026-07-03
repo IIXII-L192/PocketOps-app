@@ -79,12 +79,6 @@ fun QuickClipScreen(
                 ),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Icon(
-                    painter = painterResource(if (isPaused) R.drawable.ic_install else R.drawable.ic_check),
-                    contentDescription = if (isPaused) "Resume" else "Active",
-                    modifier = Modifier.size(16.dp)
-                )
-                Spacer(modifier = Modifier.width(6.dp))
                 Text(
                     text = if (isPaused) "Paused" else "Running",
                     fontWeight = FontWeight.Bold,
@@ -282,29 +276,25 @@ fun ClipItemPane(
             ) {
                 IconButton(
                     onClick = onCopy,
-                    modifier = Modifier
-                        .size(36.dp)
-                        .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(10.dp))
+                    modifier = Modifier.size(36.dp)
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.ic_copy),
                         contentDescription = "Copy to Clipboard",
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.size(16.dp)
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp)
                     )
                 }
                 
                 IconButton(
                     onClick = onDelete,
-                    modifier = Modifier
-                        .size(36.dp)
-                        .background(MaterialTheme.colorScheme.errorContainer, RoundedCornerShape(10.dp))
+                    modifier = Modifier.size(36.dp)
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.ic_delete),
                         contentDescription = "Delete Clip",
-                        tint = MaterialTheme.colorScheme.onErrorContainer,
-                        modifier = Modifier.size(16.dp)
+                        tint = Color(0xFFFF3B30),
+                        modifier = Modifier.size(20.dp)
                     )
                 }
             }

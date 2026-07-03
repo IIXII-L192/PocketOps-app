@@ -71,7 +71,7 @@ fun DashboardScreen(
 
         ToolCard(
             title = "Quick Clip",
-            description = "Smart clipboard history & manager",
+            description = "Smart clipboard history",
             iconRes = R.drawable.ic_clipboard,
             accentColor = if (isDark) Color(0xFFFFE57F) else Color(0xFFFFDC00), // Clipboard Yellow
             onClick = { onToolSelected(QuickTool.CLIPBOARD) }

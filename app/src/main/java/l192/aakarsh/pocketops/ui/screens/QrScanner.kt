@@ -58,6 +58,7 @@ fun QrScannerDialog(
     onQrScanned: (String) -> Unit
 ) {
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
     var hasCameraPermission by remember {
         mutableStateOf(
             ContextCompat.checkSelfPermission(
@@ -98,6 +99,7 @@ fun QrScannerDialog(
                     .background(Color.Black)
             ) {
                 CameraPreviewView(
+                    lifecycleOwner = lifecycleOwner,
                     onQrScanned = { raw ->
                         val parsedNumber = parseWhatsAppNumber(raw)
                         if (parsedNumber != null) {
@@ -118,10 +120,10 @@ fun QrScannerDialog(
 @SuppressLint("UnrememberedMutableState")
 @Composable
 fun CameraPreviewView(
+    lifecycleOwner: androidx.lifecycle.LifecycleOwner,
     onQrScanned: (String) -> Unit
 ) {
     val context = LocalContext.current
-    val lifecycleOwner = LocalLifecycleOwner.current
     val cameraExecutor = remember { Executors.newSingleThreadExecutor() }
     val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
     var scanEnabled by remember { mutableStateOf(true) }
