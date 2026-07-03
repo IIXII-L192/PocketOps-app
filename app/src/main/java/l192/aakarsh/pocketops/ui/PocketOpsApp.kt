@@ -9,6 +9,7 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.snap
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
@@ -57,6 +58,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -379,7 +381,7 @@ fun PocketOpsContent(
     onExport: () -> Unit = {},
     onImport: () -> Unit = {}
 ) {
-    BasicAlertDialog(
+    Dialog(
         onDismissRequest = { onDismiss() },
         properties = DialogProperties(
             dismissOnBackPress = true,
@@ -490,9 +492,9 @@ fun PocketOpsContent(
                     targetState = uiState,
                     label = "screenTransition",
                     transitionSpec = {
-                        fadeIn(animationSpec = tween(150)) togetherWith
-                                fadeOut(animationSpec = tween(150)) using
-                                SizeTransform(clip = false) { _, _ -> tween(150) }
+                        fadeIn(animationSpec = tween(120)) togetherWith
+                                fadeOut(animationSpec = tween(120)) using
+                                SizeTransform(clip = false) { _, _ -> snap() }
                     },
                     modifier = Modifier.fillMaxWidth()
                 ) { state ->

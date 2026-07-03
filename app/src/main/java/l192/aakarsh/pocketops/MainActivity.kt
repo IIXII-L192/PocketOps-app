@@ -135,12 +135,22 @@ class MainActivity : ComponentActivity() {
                         val item = clipData.getItemAt(0)
                         val text = item.text?.toString()
                         val uri = item.uri
-                        if (!text.isNullOrBlank() || uri != null) {
+                        
+                        var imageStream: java.io.InputStream? = null
+                        if (uri != null && text.isNullOrBlank()) {
+                            try {
+                                imageStream = contentResolver.openInputStream(uri)
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                            }
+                        }
+
+                        if (!text.isNullOrBlank() || imageStream != null) {
                             kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
                                 if (!text.isNullOrBlank()) {
                                     userStore.addTextToClipboardHistory(text)
-                                } else if (uri != null) {
-                                    userStore.addImageToClipboardHistory(uri)
+                                } else if (imageStream != null) {
+                                    userStore.addImageStreamToClipboardHistory(imageStream)
                                 }
                             }
                         }

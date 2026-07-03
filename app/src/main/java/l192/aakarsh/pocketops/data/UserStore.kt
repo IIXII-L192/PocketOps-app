@@ -404,6 +404,34 @@ class UserStore(private val context: Context) {
         }
     }
 
+    fun addImageStreamToClipboardHistory(inputStream: java.io.InputStream) {
+        try {
+            val id = System.currentTimeMillis().toString()
+            val filename = "img_$id.png"
+            val destFile = java.io.File(clipboardDir, filename)
+
+            inputStream.use { input ->
+                destFile.outputStream().use { output ->
+                    input.copyTo(output)
+                }
+            }
+
+            val currentList = _clipItemsFlow.value.toMutableList()
+            currentList.add(
+                0,
+                ClipItem(
+                    id = id,
+                    type = "image",
+                    content = filename,
+                    timestamp = System.currentTimeMillis()
+                )
+            )
+            saveClipboardItems(currentList)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
     fun deleteClipItem(item: ClipItem) {
         val currentList = _clipItemsFlow.value.toMutableList()
         currentList.remove(item)
