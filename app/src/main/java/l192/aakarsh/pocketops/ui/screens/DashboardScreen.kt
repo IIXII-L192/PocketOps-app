@@ -26,7 +26,7 @@ import androidx.compose.ui.unit.dp
 import l192.aakarsh.pocketops.R
 
 enum class QuickTool {
-    UPI, WHATSAPP, INSTAGRAM, CLIPBOARD
+    UPI, WHATSAPP, INSTAGRAM, CLIPBOARD, LINK, WEB
 }
 
 @Composable
@@ -55,7 +55,7 @@ fun DashboardScreen(
 
         ToolCard(
             title = "Quick Chat",
-            description = "Direct WhatsApp chat without saving contacts",
+            description = "Whatsapp chat without contacts",
             iconRes = R.drawable.ic_whatsapp,
             accentColor = if (isDark) Color(0xFF81C784) else Color(0xFF4CAF50), // WhatsApp Green
             onClick = { onToolSelected(QuickTool.WHATSAPP) }
@@ -73,8 +73,24 @@ fun DashboardScreen(
             title = "Quick Clip",
             description = "Smart clipboard history",
             iconRes = R.drawable.ic_clipboard,
-            accentColor = if (isDark) Color(0xFFFFE57F) else Color(0xFFFFDC00), // Clipboard Yellow
+            accentColor = if (isDark) Color(0xFFFFD54F) else Color(0xFFF9A825), // Clipboard Yellow
             onClick = { onToolSelected(QuickTool.CLIPBOARD) }
+        )
+
+        ToolCard(
+            title = "Quick Link",
+            description = "Save links with previews",
+            iconRes = R.drawable.ic_link_45,
+            accentColor = if (isDark) Color(0xFFB388FF) else Color(0xFF7C4DFF),
+            onClick = { onToolSelected(QuickTool.LINK) }
+        )
+
+        ToolCard(
+            title = "Quick Web",
+            description = "Search with your engine",
+            iconRes = R.drawable.ic_globe,
+            accentColor = if (isDark) Color(0xFF4DD0E1) else Color(0xFF00838F),
+            onClick = { onToolSelected(QuickTool.WEB) }
         )
     }
 }
@@ -130,3 +146,5 @@ fun ToolCard(
         }
     }
 }
+
+

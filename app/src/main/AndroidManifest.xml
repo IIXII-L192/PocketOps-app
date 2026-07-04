@@ -11,9 +11,9 @@
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@drawable/pocketops_app_icon"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@drawable/pocketops_app_icon"
         android:supportsRtl="true"
         android:theme="@android:style/Theme.Material.Light.Dialog.NoActionBar"
         tools:targetApi="31">
@@ -31,6 +31,7 @@
                 <action android:name="android.intent.action.SEND" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:mimeType="application/json" />
+                <data android:mimeType="text/plain" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
@@ -39,6 +40,7 @@
                 <data android:scheme="file" />
                 <data android:scheme="content" />
                 <data android:mimeType="application/json" />
+                <data android:mimeType="text/plain" />
             </intent-filter>
             <meta-data
                 android:name="android.app.shortcuts"
@@ -48,7 +50,7 @@
         <service
             android:name=".quicktile.QuickTileService"
             android:exported="true"
-            android:icon="@drawable/ic_pocketops_tile"
+            android:icon="@drawable/pocketops_icon_transparent"
             android:label="@string/quick_tile_title"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
             <meta-data
@@ -73,3 +75,8 @@
     </application>
 
 </manifest>
+
+
+
+
+

@@ -24,6 +24,7 @@ class MainActivity : ComponentActivity() {
 
         val userStore = UserStore(this)
         val shortcutAction = intent?.action
+        val sharedLink = extractSharedLink(intent)
         
         handleIntent(intent)
 
@@ -49,6 +50,7 @@ class MainActivity : ComponentActivity() {
                 PocketOpsApp(
                     userStore = userStore,
                     shortcutAction = shortcutAction,
+                    sharedLink = sharedLink,
                     themeMode = themeMode,
                     dynamicColor = dynamicColor,
                     isLoggingActive = isLoggingActive,
@@ -103,6 +105,16 @@ class MainActivity : ComponentActivity() {
         handleIntent(intent)
     }
 
+
+    private fun extractSharedLink(intent: Intent?): String? {
+        if (intent == null) return null
+        val raw = when (intent.action) {
+            Intent.ACTION_SEND -> intent.getStringExtra(Intent.EXTRA_TEXT)
+            Intent.ACTION_VIEW -> intent.dataString
+            else -> null
+        } ?: return null
+        return Regex("https?://\\S+").find(raw)?.value?.trim()
+    }
     private fun handleIntent(intent: Intent?) {
         if (intent == null) return
         val userStore = UserStore(this)
@@ -213,3 +225,4 @@ class MainActivity : ComponentActivity() {
         window.attributes = layoutParams
     }
 }
+

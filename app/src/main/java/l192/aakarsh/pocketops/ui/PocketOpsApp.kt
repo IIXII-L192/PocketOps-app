@@ -40,6 +40,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -75,9 +76,13 @@ import l192.aakarsh.pocketops.ui.screens.SetupScreen
 import l192.aakarsh.pocketops.ui.screens.ShowQrScreen
 import l192.aakarsh.pocketops.ui.screens.SettingsScreen
 import l192.aakarsh.pocketops.ui.screens.QuickClipScreen
+import l192.aakarsh.pocketops.ui.screens.QuickLinkScreen
+import l192.aakarsh.pocketops.ui.screens.QuickWebScreen
 import l192.aakarsh.pocketops.utils.QRCodeGenerator
 import l192.aakarsh.pocketops.utils.UpdateManager
 import l192.aakarsh.pocketops.utils.UpdateState
+import java.net.HttpURLConnection
+import java.net.URL
 
 sealed interface PocketOpsUiState {
     data object Dashboard : PocketOpsUiState
@@ -90,13 +95,18 @@ sealed interface PocketOpsUiState {
     data object WhatsApp : PocketOpsUiState
     data object Instagram : PocketOpsUiState
     data object Clipboard : PocketOpsUiState
+    data object Link : PocketOpsUiState
+    data object Web : PocketOpsUiState
     data object Settings : PocketOpsUiState
+
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PocketOpsApp(
     userStore: UserStore,
     shortcutAction: String? = null,
+    sharedLink: String? = null,
     themeMode: String = "SYSTEM",
     dynamicColor: Boolean = false,
     isLoggingActive: Boolean = false,
@@ -192,6 +202,20 @@ fun PocketOpsApp(
         }
     }
 
+    var pendingSharedLink by remember(sharedLink) { mutableStateOf(sharedLink?.takeIf { it.startsWith("http://") || it.startsWith("https://") }) }
+    var linkPreviewTitle by remember(pendingSharedLink) { mutableStateOf(pendingSharedLink ?: "") }
+    var linkPreviewIcon by remember(pendingSharedLink) { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(pendingSharedLink) {
+        val url = pendingSharedLink ?: return@LaunchedEffect
+        navigationStack.clear()
+        navigationStack.add(PocketOpsUiState.Dashboard)
+        navigationStack.add(PocketOpsUiState.Link)
+        withContext(Dispatchers.IO) { fetchLinkPreview(url) }.let { preview ->
+            linkPreviewTitle = preview.first.ifBlank { url }
+            linkPreviewIcon = preview.second
+        }
+    }
     LaunchedEffect(Unit) {
         UpdateManager.checkForUpdates(context)
     }
@@ -217,6 +241,7 @@ fun PocketOpsApp(
         }
         processedShortcut = null
     }
+
 
     PocketOpsContent(
         userStore = userStore,
@@ -340,6 +365,8 @@ fun PocketOpsApp(
                 QuickTool.WHATSAPP -> PocketOpsUiState.WhatsApp
                 QuickTool.INSTAGRAM -> PocketOpsUiState.Instagram
                 QuickTool.CLIPBOARD -> PocketOpsUiState.Clipboard
+                QuickTool.LINK -> PocketOpsUiState.Link
+                QuickTool.WEB -> PocketOpsUiState.Web
             }
             navigateTo(targetState)
         },
@@ -351,7 +378,41 @@ fun PocketOpsApp(
         isLoggingActive = isLoggingActive,
         onToggleLogging = onToggleLogging
     )
+
+    if (pendingSharedLink != null) {
+        BasicAlertDialog(onDismissRequest = { pendingSharedLink = null }) {
+            Surface(
+                shape = RoundedCornerShape(20.dp),
+                color = MaterialTheme.colorScheme.surface,
+                tonalElevation = 6.dp
+            ) {
+                Column(
+                    modifier = Modifier.padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text("Save Link", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                    Text(linkPreviewTitle, style = MaterialTheme.typography.bodyMedium, maxLines = 2)
+                    Text(pendingSharedLink ?: "", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        TextButton(onClick = { pendingSharedLink = null }) { Text("Cancel") }
+                        Button(onClick = {
+                            val url = pendingSharedLink
+                            if (url != null) {
+                                userStore.saveQuickLink(linkPreviewTitle, url, linkPreviewIcon)
+                                pendingSharedLink = null
+                                navigateTo(PocketOpsUiState.Link)
+                            }
+                        }) { Text("Save") }
+                    }
+                }
+            }
+        }
+    }
 }
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -440,6 +501,8 @@ fun PocketOpsContent(
                             PocketOpsUiState.WhatsApp -> if (selectingCountry) "Select Country" else if (showChatSettings) "Chat Settings" else "Quick Chat"
                             PocketOpsUiState.Instagram -> "Quick Insta"
                             PocketOpsUiState.Clipboard -> "Quick Clip"
+                            PocketOpsUiState.Link -> "Quick Link"
+                            PocketOpsUiState.Web -> "Quick Web"
                             PocketOpsUiState.Settings -> "Settings"
                             is PocketOpsUiState.Setup,
                             is PocketOpsUiState.EnterAmount,
@@ -552,6 +615,8 @@ fun PocketOpsContent(
                                 userStore = userStore,
                                 onDismiss = onDismiss
                             )
+                        PocketOpsUiState.Link -> QuickLinkScreen(userStore = userStore)
+                        PocketOpsUiState.Web -> QuickWebScreen()
                         PocketOpsUiState.Settings ->
                             SettingsScreen(
                                 themeMode = themeMode,
@@ -776,3 +841,30 @@ fun UpdateTag() {
         }
     }
 }
+
+
+
+private fun fetchLinkPreview(rawUrl: String): Pair<String, String?> {
+    return try {
+        val connection = (URL(rawUrl).openConnection() as HttpURLConnection).apply {
+            connectTimeout = 3500
+            readTimeout = 3500
+            instanceFollowRedirects = true
+            setRequestProperty("User-Agent", "PocketOps/3.0")
+        }
+        val html = connection.inputStream.bufferedReader().use { it.readText().take(200_000) }
+        val title = Regex("<meta[^>]+property=[\"']og:title[\"'][^>]+content=[\"']([^\"']+)[\"']", RegexOption.IGNORE_CASE)
+            .find(html)?.groupValues?.get(1)
+            ?: Regex("<title[^>]*>(.*?)</title>", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL))
+                .find(html)?.groupValues?.get(1)?.replace(Regex("\\s+"), " ")?.trim()
+            ?: rawUrl
+        val icon = Regex("<link[^>]+(?:rel=[\"'][^\"']*icon[^\"']*[\"'][^>]*href=[\"']([^\"']+)[\"']|href=[\"']([^\"']+)[\"'][^>]*rel=[\"'][^\"']*icon[^\"']*[\"'])", RegexOption.IGNORE_CASE)
+            .find(html)?.groupValues?.drop(1)?.firstOrNull { it.isNotBlank() }
+            ?.let { href -> URL(URL(rawUrl), href).toString() }
+        title to icon
+    } catch (e: Exception) {
+        rawUrl to null
+    }
+}
+
+

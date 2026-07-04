@@ -446,21 +446,19 @@ fun RecorderButton(
             val outerRadius = size.width / 2 - 2.dp.toPx()
             
             if (isRecording) {
-                drawArc(
-                    color = activeColor,
-                    startAngle = dashPhase,
-                    sweepAngle = 270f,
-                    useCenter = false,
-                    topLeft = Offset(center.x - outerRadius, center.y - outerRadius),
-                    size = size.copy(width = outerRadius * 2, height = outerRadius * 2),
-                    style = Stroke(
-                        width = 2.dp.toPx(),
-                        pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(
-                            floatArrayOf(12.dp.toPx(), 8.dp.toPx()),
-                            0f
-                        )
+                val segmentSpacing = 360f / 5f
+                val segmentSweep = 48f
+                repeat(5) { segmentIndex ->
+                    drawArc(
+                        color = activeColor,
+                        startAngle = dashPhase + segmentIndex * segmentSpacing,
+                        sweepAngle = segmentSweep,
+                        useCenter = false,
+                        topLeft = Offset(center.x - outerRadius, center.y - outerRadius),
+                        size = size.copy(width = outerRadius * 2, height = outerRadius * 2),
+                        style = Stroke(width = 2.dp.toPx())
                     )
-                )
+                }
             } else {
                 drawCircle(
                     color = activeColor.copy(alpha = 0.8f),

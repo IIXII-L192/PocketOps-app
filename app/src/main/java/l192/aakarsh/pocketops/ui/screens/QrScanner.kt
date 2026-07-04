@@ -275,11 +275,11 @@ fun ScannerOverlayView(onClose: () -> Unit) {
             ) {
                 Surface(
                     shape = RoundedCornerShape(50),
-                    color = Color.White,
+                    color = Color.Transparent,
                     modifier = Modifier.size(36.dp)
                 ) {
                     Image(
-                        painter = painterResource(R.mipmap.ic_launcher_round),
+                        painter = painterResource(R.drawable.pocketops_app_icon),
                         contentDescription = "PocketOps logo",
                         modifier = Modifier.fillMaxSize()
                     )
@@ -336,28 +336,25 @@ private val CircleShape = RoundedCornerShape(50)
 
 fun parseWhatsAppNumber(qrText: String): String? {
     val clean = qrText.trim()
-    
-    // 1. Check query parameter e.g. https://api.whatsapp.com/send?phone=1234567890
-    val phoneRegex = Regex("[?&]phone=([+0-9]+)")
-    val match = phoneRegex.find(clean)
-    if (match != null) {
-        return match.groupValues[1]
-    }
-    
-    // 2. Check path e.g. wa.me/1234567890 or https://wa.me/1234567890
-    if (clean.contains("wa.me/")) {
-        val waMeRegex = Regex("wa\\.me/([+0-9]+)")
-        val waMatch = waMeRegex.find(clean)
-        if (waMatch != null) {
-            return waMatch.groupValues[1]
-        }
-    }
-    
-    // 3. Plain phone number checks
-    val digitsOnly = clean.replace(Regex("[^0-9]"), "")
-    if (digitsOnly.length >= 10 && (clean.startsWith("+") || clean.all { it.isDigit() })) {
-        return clean
-    }
-    
-    return null
+    val lower = clean.lowercase()
+    val isWhatsAppPayload = lower.contains("wa.me/") ||
+            lower.contains("api.whatsapp.com/send") ||
+            lower.contains("whatsapp://send") ||
+            lower.contains("web.whatsapp.com/send") ||
+            lower.contains("chat.whatsapp.com/") ||
+            lower.contains("whatsapp.com/channel/")
+    if (!isWhatsAppPayload) return null
+
+    Regex("[?&]phone=([+0-9]+)", RegexOption.IGNORE_CASE)
+        .find(clean)?.let { return it.groupValues[1] }
+
+    Regex("wa\\.me/([+0-9]+)", RegexOption.IGNORE_CASE)
+        .find(clean)?.let { return it.groupValues[1] }
+
+    return clean
 }
+
+
+
+
+

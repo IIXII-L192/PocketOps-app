@@ -677,9 +677,14 @@ fun QuickChatScreen(
             if (showScanner) {
                 QrScannerDialog(
                     onDismiss = { showScanner = false },
-                    onQrScanned = { num ->
-                        phoneNumber = num
+                    onQrScanned = { scanned ->
                         showScanner = false
+                        if (scanned.startsWith("http://") || scanned.startsWith("https://") || scanned.startsWith("whatsapp://")) {
+                            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(scanned)))
+                            onDismiss()
+                        } else {
+                            phoneNumber = scanned
+                        }
                     }
                 )
             }
@@ -721,3 +726,4 @@ fun QuickChatScreen(
         }
     }
 }
+
