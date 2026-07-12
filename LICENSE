@@ -51,9 +51,7 @@ or Distribute a Derivative work, you are legally obligated to:
 - Keep the entire source code of your Derivative work fully public and
   open-source. You cannot close the source code, sell it privately, or hide
   your modifications.
-- Distribute your Derivative work under this exact same license (or a
-  compatible GPL-3.0 license), ensuring that any downstream users have the
-  same rights and restrictions.
+- Distribute your Derivative work under this exact same license, ensuring that any downstream users have the same rights and restrictions.
 - Platform Requirement: If the Derivative is hosted on a public repository
   platform (such as GitHub), it must be managed via that platform’s native
   "Fork" mechanism to maintain a transparent, verifiable link to the original
