@@ -352,7 +352,6 @@ fun SettingsScreen(
         ) {
             SettingsLinkCard(
                 title = "Donate",
-                description = "Support Me",
                 iconRes = R.drawable.ic_donate,
                 iconColor = Color(0xFFFA0557),
                 onClick = {

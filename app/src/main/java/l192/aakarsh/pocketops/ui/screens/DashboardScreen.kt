@@ -65,7 +65,7 @@ fun DashboardScreen(
             title = "Telegram Direct",
             description = "Telegram chat by number/username",
             iconRes = R.drawable.ic_share,
-            accentColor = if (isDark) Color(0xFF64B5F6) else Color(0xFF24A1DE), // Telegram Blue
+            accentColor = if (isDark) Color(0xFF4FC3F7) else Color(0xFF03A9F4), // Telegram Light Blue
             onClick = { onToolSelected(QuickTool.TELEGRAM) }
         )
 
@@ -105,7 +105,7 @@ fun DashboardScreen(
             title = "Web Search",
             description = "Search with your engine",
             iconRes = R.drawable.ic_globe,
-            accentColor = if (isDark) Color(0xFF4DD0E1) else Color(0xFF00838F),
+            accentColor = if (isDark) Color(0xFF4DB6AC) else Color(0xFF009688), // Web Search Emerald Teal
             onClick = { onToolSelected(QuickTool.WEB) }
         )
 
@@ -121,7 +121,7 @@ fun DashboardScreen(
             title = "Local Save",
             description = "Save shared files locally",
             iconRes = R.drawable.ic_sd_card,
-            accentColor = if (isDark) Color(0xFF80DEEA) else Color(0xFF00ACC1), // Cyan/Teal
+            accentColor = if (isDark) Color(0xFF90A4AE) else Color(0xFF607D8B), // Slate/Grey-Blue
             onClick = { onToolSelected(QuickTool.LOCAL_SAVE) }
         )
     }
