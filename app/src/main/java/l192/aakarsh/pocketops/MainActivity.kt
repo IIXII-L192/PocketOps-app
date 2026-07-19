@@ -18,6 +18,9 @@ import l192.aakarsh.pocketops.ui.PocketOpsApp
 import l192.aakarsh.pocketops.ui.theme.PocketOpsTheme
 
 class MainActivity : ComponentActivity() {
+    private var sharedFileUriState by androidx.compose.runtime.mutableStateOf<Uri?>(null)
+    private var sharedTextState by androidx.compose.runtime.mutableStateOf<String?>(null)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
@@ -51,6 +54,12 @@ class MainActivity : ComponentActivity() {
                     userStore = userStore,
                     shortcutAction = shortcutAction,
                     sharedLink = sharedLink,
+                    sharedFileUri = sharedFileUriState,
+                    sharedText = sharedTextState,
+                    onClearShared = {
+                        sharedFileUriState = null
+                        sharedTextState = null
+                    },
                     themeMode = themeMode,
                     dynamicColor = dynamicColor,
                     isLoggingActive = isLoggingActive,
@@ -118,6 +127,35 @@ class MainActivity : ComponentActivity() {
     private fun handleIntent(intent: Intent?) {
         if (intent == null) return
         val userStore = UserStore(this)
+
+        val action = intent.action
+        val type = intent.type
+
+        // Extract shared file / text
+        if (action == Intent.ACTION_SEND) {
+            if (type != null) {
+                if (type.startsWith("text/")) {
+                    val text = intent.getStringExtra(Intent.EXTRA_TEXT)
+                    if (text != null && !text.startsWith("http://") && !text.startsWith("https://")) {
+                        sharedTextState = text
+                        sharedFileUriState = null
+                    }
+                } else {
+                    @Suppress("DEPRECATION")
+                    val stream = intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM)
+                    if (stream != null) {
+                        sharedFileUriState = stream
+                        sharedTextState = null
+                    }
+                }
+            }
+        } else if (action == Intent.ACTION_VIEW) {
+            if (type != "application/json") {
+                sharedFileUriState = intent.data
+                sharedTextState = null
+            }
+        }
+
         val receivedJsonUri = if (intent.action == Intent.ACTION_SEND) {
             @Suppress("DEPRECATION")
             intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM)
@@ -127,7 +165,7 @@ class MainActivity : ComponentActivity() {
             null
         }
 
-        if (receivedJsonUri != null) {
+        if (receivedJsonUri != null && type == "application/json") {
             lifecycleScope.launch {
                 try {
                     val inputStream = contentResolver.openInputStream(receivedJsonUri)
@@ -136,6 +174,8 @@ class MainActivity : ComponentActivity() {
                         val success = userStore.importFromJson(jsonString)
                         if (success) {
                             android.widget.Toast.makeText(this@MainActivity, "Backup restored successfully!", android.widget.Toast.LENGTH_SHORT).show()
+                            sharedFileUriState = null
+                            sharedTextState = null
                         } else {
                             android.widget.Toast.makeText(this@MainActivity, "Invalid backup format!", android.widget.Toast.LENGTH_LONG).show()
                         }

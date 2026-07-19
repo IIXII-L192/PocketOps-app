@@ -26,7 +26,7 @@ import androidx.compose.ui.unit.dp
 import l192.aakarsh.pocketops.R
 
 enum class QuickTool {
-    UPI, WHATSAPP, TELEGRAM, SMS, SOCIAL_PROFILER, CLIPBOARD, LINK, WEB, YT_EXPLORER
+    UPI, WHATSAPP, TELEGRAM, SMS, SOCIAL_PROFILER, CLIPBOARD, LINK, WEB, YT_EXPLORER, LOCAL_SAVE
 }
 
 @Composable
@@ -96,7 +96,7 @@ fun DashboardScreen(
         ToolCard(
             title = "Bookmarks",
             description = "Save links with previews",
-            iconRes = R.drawable.ic_link_45,
+            iconRes = R.drawable.ic_bookmarks,
             accentColor = if (isDark) Color(0xFFB388FF) else Color(0xFF7C4DFF),
             onClick = { onToolSelected(QuickTool.LINK) }
         )
@@ -115,6 +115,14 @@ fun DashboardScreen(
             iconRes = R.drawable.ic_play,
             accentColor = if (isDark) Color(0xFFEF5350) else Color(0xFFFF0000), // YouTube Red
             onClick = { onToolSelected(QuickTool.YT_EXPLORER) }
+        )
+
+        ToolCard(
+            title = "Local Save",
+            description = "Save shared files locally",
+            iconRes = R.drawable.ic_sd_card,
+            accentColor = if (isDark) Color(0xFF80DEEA) else Color(0xFF00ACC1), // Cyan/Teal
+            onClick = { onToolSelected(QuickTool.LOCAL_SAVE) }
         )
     }
 }

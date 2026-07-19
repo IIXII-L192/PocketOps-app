@@ -79,6 +79,7 @@ import l192.aakarsh.pocketops.ui.screens.QuickClipScreen
 import l192.aakarsh.pocketops.ui.screens.QuickLinkScreen
 import l192.aakarsh.pocketops.ui.screens.QuickWebScreen
 import l192.aakarsh.pocketops.ui.screens.YtExplorerScreen
+import l192.aakarsh.pocketops.ui.screens.LocalSaveScreen
 import l192.aakarsh.pocketops.utils.QRCodeGenerator
 import l192.aakarsh.pocketops.utils.UpdateManager
 import l192.aakarsh.pocketops.utils.UpdateState
@@ -101,6 +102,7 @@ sealed interface PocketOpsUiState {
     data object Link : PocketOpsUiState
     data object Web : PocketOpsUiState
     data object YtExplorer : PocketOpsUiState
+    data object LocalSave : PocketOpsUiState
     data object Settings : PocketOpsUiState
 
 }
@@ -109,9 +111,12 @@ sealed interface PocketOpsUiState {
 @Composable
 fun PocketOpsApp(
     userStore: UserStore,
-    shortcutAction: String? = null,
-    sharedLink: String? = null,
-    themeMode: String = "SYSTEM",
+    shortcutAction: String?,
+    sharedLink: String?,
+    sharedFileUri: Uri? = null,
+    sharedText: String? = null,
+    onClearShared: () -> Unit = {},
+    themeMode: String,
     dynamicColor: Boolean = false,
     isLoggingActive: Boolean = false,
     onToggleLogging: () -> Unit = {},
@@ -210,6 +215,21 @@ fun PocketOpsApp(
     var linkPreviewTitle by remember(pendingSharedLink) { mutableStateOf(pendingSharedLink ?: "") }
     var linkPreviewIcon by remember(pendingSharedLink) { mutableStateOf<String?>(null) }
 
+    // Handle shared link on startup
+    LaunchedEffect(sharedLink) {
+        if (sharedLink != null) {
+            userStore.saveQuickLink("", sharedLink, null)
+            navigateTo(PocketOpsUiState.Link)
+        }
+    }
+
+    // Handle shared file or text on startup
+    LaunchedEffect(sharedFileUri, sharedText) {
+        if (sharedFileUri != null || sharedText != null) {
+            navigateTo(PocketOpsUiState.LocalSave)
+        }
+    }
+
     LaunchedEffect(pendingSharedLink) {
         val url = pendingSharedLink ?: return@LaunchedEffect
         navigationStack.clear()
@@ -250,6 +270,9 @@ fun PocketOpsApp(
     PocketOpsContent(
         userStore = userStore,
         uiState = uiState,
+        sharedFileUri = sharedFileUri,
+        sharedText = sharedText,
+        onClearShared = onClearShared,
         recentAmounts = recentAmounts,
         upiIds = activeIds,
         defaultUpiId = activeDefaultId,
@@ -374,6 +397,7 @@ fun PocketOpsApp(
                 QuickTool.LINK -> PocketOpsUiState.Link
                 QuickTool.WEB -> PocketOpsUiState.Web
                 QuickTool.YT_EXPLORER -> PocketOpsUiState.YtExplorer
+                QuickTool.LOCAL_SAVE -> PocketOpsUiState.LocalSave
             }
             navigateTo(targetState)
         },
@@ -426,6 +450,9 @@ fun PocketOpsApp(
 fun PocketOpsContent(
     userStore: UserStore,
     uiState: PocketOpsUiState,
+    sharedFileUri: Uri? = null,
+    sharedText: String? = null,
+    onClearShared: () -> Unit = {},
     recentAmounts: List<String> = emptyList(),
     upiIds: List<String> = emptyList(),
     defaultUpiId: String? = null,
@@ -513,6 +540,7 @@ fun PocketOpsContent(
                             PocketOpsUiState.Link -> "Bookmarks"
                             PocketOpsUiState.Web -> "Web Search"
                             PocketOpsUiState.YtExplorer -> "YT Explorer"
+                            PocketOpsUiState.LocalSave -> "Local Save"
                             PocketOpsUiState.Settings -> "Settings"
                             is PocketOpsUiState.Setup,
                             is PocketOpsUiState.EnterAmount,
@@ -651,6 +679,13 @@ fun PocketOpsContent(
                         PocketOpsUiState.Link -> QuickLinkScreen(userStore = userStore)
                         PocketOpsUiState.Web -> QuickWebScreen()
                         PocketOpsUiState.YtExplorer -> YtExplorerScreen()
+                        PocketOpsUiState.LocalSave ->
+                            LocalSaveScreen(
+                                sharedFileUri = sharedFileUri,
+                                sharedText = sharedText,
+                                onClearShared = onClearShared,
+                                onDismiss = onDismiss
+                            )
                         PocketOpsUiState.Settings ->
                             SettingsScreen(
                                 themeMode = themeMode,
