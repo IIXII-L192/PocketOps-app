@@ -26,7 +26,7 @@ import androidx.compose.ui.unit.dp
 import l192.aakarsh.pocketops.R
 
 enum class QuickTool {
-    UPI, WHATSAPP, INSTAGRAM, CLIPBOARD, LINK, WEB
+    UPI, WHATSAPP, TELEGRAM, SMS, INSTAGRAM, CLIPBOARD, LINK, WEB
 }
 
 @Composable
@@ -59,6 +59,22 @@ fun DashboardScreen(
             iconRes = R.drawable.ic_whatsapp,
             accentColor = if (isDark) Color(0xFF81C784) else Color(0xFF4CAF50), // WhatsApp Green
             onClick = { onToolSelected(QuickTool.WHATSAPP) }
+        )
+
+        ToolCard(
+            title = "Quick Telegram",
+            description = "Telegram chat by number/username",
+            iconRes = R.drawable.ic_share,
+            accentColor = if (isDark) Color(0xFF64B5F6) else Color(0xFF24A1DE), // Telegram Blue
+            onClick = { onToolSelected(QuickTool.TELEGRAM) }
+        )
+
+        ToolCard(
+            title = "Quick SMS",
+            description = "Send SMS without saving contact",
+            iconRes = R.drawable.ic_phone,
+            accentColor = if (isDark) Color(0xFFFFB74D) else Color(0xFFFF9800), // SMS Orange
+            onClick = { onToolSelected(QuickTool.SMS) }
         )
 
         ToolCard(

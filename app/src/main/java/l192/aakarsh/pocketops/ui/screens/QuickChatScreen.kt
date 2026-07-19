@@ -22,6 +22,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -58,6 +59,7 @@ data class Country(val code: String, val iso: String, val name: String, val flag
 @Composable
 fun QuickChatScreen(
     userStore: UserStore,
+    mode: String = "WhatsApp", // "WhatsApp", "Telegram", "SMS"
     showSettings: Boolean,
     onToggleSettings: (Boolean) -> Unit,
     selectingCountry: Boolean,
@@ -76,7 +78,6 @@ fun QuickChatScreen(
     var phoneNumber by remember { mutableStateOf("") }
     var searchQuery by remember { mutableStateOf("") }
     var showClearHistoryConfirm by remember { mutableStateOf(false) }
-    var showScanner by remember { mutableStateOf(false) }
 
     // Comprehensive list of countries sorted alphabetically by name
     val countries = remember {
@@ -554,10 +555,20 @@ fun QuickChatScreen(
                                         fontWeight = FontWeight.Medium,
                                         modifier = Modifier.weight(1f)
                                     )
+                                    val iconRes = when (mode) {
+                                        "WhatsApp" -> R.drawable.ic_whatsapp
+                                        "Telegram" -> R.drawable.ic_share
+                                        else -> R.drawable.ic_phone
+                                    }
+                                    val iconTint = when (mode) {
+                                        "WhatsApp" -> if (androidx.compose.foundation.isSystemInDarkTheme()) Color(0xFF81C784) else Color(0xFF4CAF50)
+                                        "Telegram" -> if (androidx.compose.foundation.isSystemInDarkTheme()) Color(0xFF64B5F6) else Color(0xFF24A1DE)
+                                        else -> if (androidx.compose.foundation.isSystemInDarkTheme()) Color(0xFFFFB74D) else Color(0xFFFF9800)
+                                    }
                                     Icon(
-                                        painter = painterResource(R.drawable.ic_whatsapp),
+                                        painter = painterResource(iconRes),
                                         contentDescription = "Message",
-                                        tint = MaterialTheme.colorScheme.primary,
+                                        tint = iconTint,
                                         modifier = Modifier.size(18.dp)
                                     )
                                 }
@@ -597,10 +608,18 @@ fun QuickChatScreen(
         val detectedIso = detectCountryIso(phoneNumber)
         val activeFlag = getFlagEmoji(detectedIso)
 
-        val digitsOnly = phoneNumber.replace(Regex("[^0-9]"), "")
-        val isValid = digitsOnly.length >= 10
+        val digitsOnly = if (mode == "Telegram" && (phoneNumber.startsWith("@") || phoneNumber.any { it.isLetter() })) {
+            phoneNumber.trim()
+        } else {
+            phoneNumber.replace(Regex("[^0-9]"), "")
+        }
+        val isTelegramUsername = mode == "Telegram" && (phoneNumber.startsWith("@") || phoneNumber.trim().any { it.isLetter() })
+        val isValid = if (isTelegramUsername) phoneNumber.trim().length >= 3 else digitsOnly.length >= 10
 
         val finalNumber = when {
+            isTelegramUsername -> {
+                phoneNumber.trim()
+            }
             phoneNumber.trim().startsWith("+") -> {
                 "+$digitsOnly"
             }
@@ -612,9 +631,15 @@ fun QuickChatScreen(
             }
         }
 
+        var messageText by remember { mutableStateOf("") }
+
         Column(modifier = Modifier.fillMaxWidth()) {
             Text(
-                "Enter a phone number to start a WhatsApp chat — no need to save the contact first.",
+                text = when (mode) {
+                    "WhatsApp" -> "Enter a phone number to start a WhatsApp chat — no need to save the contact first."
+                    "Telegram" -> "Enter a phone number, username, or link to start a Telegram chat."
+                    else -> "Enter a phone number to send an SMS without saving the contact."
+                },
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -624,16 +649,24 @@ fun QuickChatScreen(
             OutlinedTextField(
                 value = phoneNumber,
                 onValueChange = { phoneNumber = it },
-                label = { Text("Phone Number") },
-                placeholder = { Text("+$defaultCode 98765-43210") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                label = { Text(if (mode == "Telegram") "Phone Number or Username" else "Phone Number") },
+                placeholder = {
+                    Text(
+                        when (mode) {
+                            "WhatsApp" -> "+$defaultCode 98765-43210"
+                            "Telegram" -> "@username or +$defaultCode 98765-43210"
+                            else -> "+$defaultCode 98765-43210"
+                        }
+                    )
+                },
+                keyboardOptions = KeyboardOptions(keyboardType = if (mode == "Telegram") KeyboardType.Text else KeyboardType.Phone),
                 shape = RoundedCornerShape(16.dp),
                 leadingIcon = {
                     Box(
                         contentAlignment = Alignment.Center,
                         modifier = Modifier.padding(start = 12.dp, end = 4.dp)
                     ) {
-                        Text(text = activeFlag, fontSize = 20.sp)
+                        Text(text = if (isTelegramUsername) "✈️" else activeFlag, fontSize = 20.sp)
                     }
                 },
                 trailingIcon = {
@@ -655,7 +688,32 @@ fun QuickChatScreen(
                             Spacer(modifier = Modifier.width(4.dp))
                         }
                         IconButton(
-                            onClick = { showScanner = true },
+                            onClick = {
+                                try {
+                                    val barcodeScanner = com.google.mlkit.vision.codescanner.GmsBarcodeScanning.getClient(context)
+                                    barcodeScanner.startScan()
+                                        .addOnSuccessListener { barcode ->
+                                            val scanned = barcode.rawValue ?: ""
+                                            if (scanned.isNotEmpty()) {
+                                                if (scanned.startsWith("http://") || scanned.startsWith("https://") || scanned.startsWith("whatsapp://")) {
+                                                    try {
+                                                        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(scanned)))
+                                                        onDismiss()
+                                                    } catch (e: Exception) {
+                                                        e.printStackTrace()
+                                                    }
+                                                } else {
+                                                    phoneNumber = scanned
+                                                }
+                                            }
+                                        }
+                                        .addOnFailureListener { e ->
+                                            android.widget.Toast.makeText(context, "Scan failed: ${e.message}", android.widget.Toast.LENGTH_SHORT).show()
+                                        }
+                                } catch (e: Exception) {
+                                    android.widget.Toast.makeText(context, "Scanner unavailable", android.widget.Toast.LENGTH_SHORT).show()
+                                }
+                            },
                             colors = IconButtonDefaults.iconButtonColors(
                                 containerColor = MaterialTheme.colorScheme.primaryContainer,
                                 contentColor = MaterialTheme.colorScheme.onPrimaryContainer
@@ -664,7 +722,7 @@ fun QuickChatScreen(
                         ) {
                             Icon(
                                 painter = painterResource(R.drawable.ic_camera),
-                                contentDescription = "Scan WhatsApp QR Code",
+                                contentDescription = "Scan QR Code",
                                 modifier = Modifier.size(18.dp)
                             )
                         }
@@ -674,51 +732,86 @@ fun QuickChatScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            if (showScanner) {
-                QrScannerDialog(
-                    onDismiss = { showScanner = false },
-                    onQrScanned = { scanned ->
-                        showScanner = false
-                        if (scanned.startsWith("http://") || scanned.startsWith("https://") || scanned.startsWith("whatsapp://")) {
-                            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(scanned)))
-                            onDismiss()
-                        } else {
-                            phoneNumber = scanned
-                        }
-                    }
+            if (mode == "SMS") {
+                Spacer(modifier = Modifier.height(12.dp))
+                OutlinedTextField(
+                    value = messageText,
+                    onValueChange = { messageText = it },
+                    label = { Text("Message (Optional)") },
+                    placeholder = { Text("Type your message here...") },
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
 
             Spacer(modifier = Modifier.height(20.dp))
 
+            val buttonColor = when (mode) {
+                "WhatsApp" -> if (androidx.compose.foundation.isSystemInDarkTheme()) Color(0xFF81C784) else Color(0xFF4CAF50)
+                "Telegram" -> if (androidx.compose.foundation.isSystemInDarkTheme()) Color(0xFF64B5F6) else Color(0xFF24A1DE)
+                else -> if (androidx.compose.foundation.isSystemInDarkTheme()) Color(0xFFFFB74D) else Color(0xFFFF9800)
+            }
+
             Button(
                 onClick = {
                     if (isValid) {
                         scope.launch {
-                            userStore.saveChatNumberToHistory(finalNumber, activeFlag)
+                            val flagToSave = if (isTelegramUsername) "✈️" else activeFlag
+                            userStore.saveChatNumberToHistory(finalNumber, flagToSave)
                         }
 
-                        val intent = Intent(Intent.ACTION_VIEW).apply {
-                            data = Uri.parse("https://api.whatsapp.com/send?phone=$finalNumber")
+                        try {
+                            val intent = Intent(Intent.ACTION_VIEW).apply {
+                                data = when (mode) {
+                                    "WhatsApp" -> Uri.parse("https://api.whatsapp.com/send?phone=$finalNumber")
+                                    "Telegram" -> {
+                                        if (isTelegramUsername) {
+                                            val user = finalNumber.removePrefix("@")
+                                            Uri.parse("https://t.me/$user")
+                                        } else if (finalNumber.startsWith("t.me")) {
+                                            Uri.parse("https://$finalNumber")
+                                        } else {
+                                            Uri.parse("tg://msg?to=$finalNumber")
+                                        }
+                                    }
+                                    else -> {
+                                        Uri.parse("smsto:$finalNumber")
+                                    }
+                                }
+                                if (mode == "SMS") {
+                                    putExtra("sms_body", messageText)
+                                }
+                            }
+                            context.startActivity(intent)
+                        } catch (e: Exception) {
+                            android.widget.Toast.makeText(context, "Could not open $mode client", android.widget.Toast.LENGTH_SHORT).show()
                         }
-                        context.startActivity(intent)
                         onDismiss()
                     }
                 },
                 enabled = isValid,
                 shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = buttonColor,
+                    contentColor = Color.White
+                ),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp)
             ) {
+                val iconRes = when (mode) {
+                    "WhatsApp" -> R.drawable.ic_whatsapp
+                    "Telegram" -> R.drawable.ic_share
+                    else -> R.drawable.ic_phone
+                }
                 Icon(
-                    painter = painterResource(R.drawable.ic_whatsapp),
+                    painter = painterResource(iconRes),
                     contentDescription = null,
                     modifier = Modifier.size(18.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    "Start Chat",
+                    "Start $mode Chat",
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.SemiBold
                 )

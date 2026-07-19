@@ -93,6 +93,8 @@ sealed interface PocketOpsUiState {
     ) : PocketOpsUiState
 
     data object WhatsApp : PocketOpsUiState
+    data object Telegram : PocketOpsUiState
+    data object SMS : PocketOpsUiState
     data object Instagram : PocketOpsUiState
     data object Clipboard : PocketOpsUiState
     data object Link : PocketOpsUiState
@@ -363,6 +365,8 @@ fun PocketOpsApp(
                     else PocketOpsUiState.EnterAmount(activeIds, activeDefaultId ?: activeIds.first())
                 }
                 QuickTool.WHATSAPP -> PocketOpsUiState.WhatsApp
+                QuickTool.TELEGRAM -> PocketOpsUiState.Telegram
+                QuickTool.SMS -> PocketOpsUiState.SMS
                 QuickTool.INSTAGRAM -> PocketOpsUiState.Instagram
                 QuickTool.CLIPBOARD -> PocketOpsUiState.Clipboard
                 QuickTool.LINK -> PocketOpsUiState.Link
@@ -499,6 +503,8 @@ fun PocketOpsContent(
                     Text(
                         text = when (uiState) {
                             PocketOpsUiState.WhatsApp -> if (selectingCountry) "Select Country" else if (showChatSettings) "Chat Settings" else "Quick Chat"
+                            PocketOpsUiState.Telegram -> if (selectingCountry) "Select Country" else if (showChatSettings) "Chat Settings" else "Quick Telegram"
+                            PocketOpsUiState.SMS -> if (selectingCountry) "Select Country" else if (showChatSettings) "Chat Settings" else "Quick SMS"
                             PocketOpsUiState.Instagram -> "Quick Insta"
                             PocketOpsUiState.Clipboard -> "Quick Clip"
                             PocketOpsUiState.Link -> "Quick Link"
@@ -602,6 +608,27 @@ fun PocketOpsContent(
                         PocketOpsUiState.WhatsApp ->
                             QuickChatScreen(
                                 userStore = userStore,
+                                mode = "WhatsApp",
+                                showSettings = showChatSettings,
+                                onToggleSettings = onToggleChatSettings,
+                                selectingCountry = selectingCountry,
+                                onToggleSelectingCountry = onToggleSelectingCountry,
+                                onDismiss = onDismiss
+                            )
+                        PocketOpsUiState.Telegram ->
+                            QuickChatScreen(
+                                userStore = userStore,
+                                mode = "Telegram",
+                                showSettings = showChatSettings,
+                                onToggleSettings = onToggleChatSettings,
+                                selectingCountry = selectingCountry,
+                                onToggleSelectingCountry = onToggleSelectingCountry,
+                                onDismiss = onDismiss
+                            )
+                        PocketOpsUiState.SMS ->
+                            QuickChatScreen(
+                                userStore = userStore,
+                                mode = "SMS",
                                 showSettings = showChatSettings,
                                 onToggleSettings = onToggleChatSettings,
                                 selectingCountry = selectingCountry,
