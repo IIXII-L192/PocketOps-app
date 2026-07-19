@@ -80,7 +80,7 @@ fun DashboardScreen(
         ToolCard(
             title = "Social Profiler",
             description = "Instagram, Facebook, X, Threads, LinkedIn",
-            iconRes = R.drawable.ic_instagram,
+            iconRes = R.drawable.ic_social,
             accentColor = if (isDark) Color(0xFFF48FB1) else Color(0xFFE91E63), // Insta Pink
             onClick = { onToolSelected(QuickTool.SOCIAL_PROFILER) }
         )
@@ -112,7 +112,7 @@ fun DashboardScreen(
         ToolCard(
             title = "YT Explorer",
             description = "Search directly on YouTube",
-            iconRes = R.drawable.ic_play,
+            iconRes = R.drawable.ic_youtube,
             accentColor = if (isDark) Color(0xFFEF5350) else Color(0xFFFF0000), // YouTube Red
             onClick = { onToolSelected(QuickTool.YT_EXPLORER) }
         )

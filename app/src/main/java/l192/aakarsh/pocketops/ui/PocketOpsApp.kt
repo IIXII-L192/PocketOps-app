@@ -175,7 +175,7 @@ fun PocketOpsApp(
                 val jsonString = userStore.exportToJson()
                 val sdf = java.text.SimpleDateFormat("ddMMyyyy", java.util.Locale.getDefault())
                 val dateStr = sdf.format(java.util.Date())
-                val fileName = "PocketOps_Backup_$dateStr.json"
+                val fileName = "PocketOps_Backup_$dateStr.pocketops"
                 
                 val file = java.io.File(context.cacheDir, fileName)
                 file.writeText(jsonString)
@@ -187,7 +187,7 @@ fun PocketOpsApp(
                 )
                 
                 val intent = Intent(Intent.ACTION_SEND).apply {
-                    type = "application/json"
+                    type = "*/*"
                     putExtra(Intent.EXTRA_STREAM, uri)
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 }

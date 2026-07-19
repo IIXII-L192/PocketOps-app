@@ -115,6 +115,30 @@ class MainActivity : ComponentActivity() {
     }
 
 
+    private fun isPocketOpsBackupUri(context: android.content.Context, uri: Uri): Boolean {
+        val path = uri.path
+        if (path != null && path.endsWith(".pocketops", ignoreCase = true)) {
+            return true
+        }
+        try {
+            val cursor = context.contentResolver.query(uri, arrayOf(android.provider.OpenableColumns.DISPLAY_NAME), null, null, null)
+            cursor?.use {
+                if (it.moveToFirst()) {
+                    val nameIndex = it.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
+                    if (nameIndex != -1) {
+                        val name = it.getString(nameIndex)
+                        if (name != null && name.endsWith(".pocketops", ignoreCase = true)) {
+                            return true
+                        }
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return false
+    }
+
     private fun extractSharedLink(intent: Intent?): String? {
         if (intent == null) return null
         val raw = when (intent.action) {
@@ -144,15 +168,26 @@ class MainActivity : ComponentActivity() {
                     @Suppress("DEPRECATION")
                     val stream = intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM)
                     if (stream != null) {
-                        sharedFileUriState = stream
-                        sharedTextState = null
+                        if (isPocketOpsBackupUri(this, stream)) {
+                            sharedFileUriState = null
+                            sharedTextState = null
+                        } else {
+                            sharedFileUriState = stream
+                            sharedTextState = null
+                        }
                     }
                 }
             }
         } else if (action == Intent.ACTION_VIEW) {
-            if (type != "application/json") {
-                sharedFileUriState = intent.data
-                sharedTextState = null
+            val uri = intent.data
+            if (uri != null) {
+                if (isPocketOpsBackupUri(this, uri)) {
+                    sharedFileUriState = null
+                    sharedTextState = null
+                } else {
+                    sharedFileUriState = uri
+                    sharedTextState = null
+                }
             }
         }
 
@@ -165,7 +200,7 @@ class MainActivity : ComponentActivity() {
             null
         }
 
-        if (receivedJsonUri != null && type == "application/json") {
+        if (receivedJsonUri != null && isPocketOpsBackupUri(this, receivedJsonUri)) {
             lifecycleScope.launch {
                 try {
                     val inputStream = contentResolver.openInputStream(receivedJsonUri)
