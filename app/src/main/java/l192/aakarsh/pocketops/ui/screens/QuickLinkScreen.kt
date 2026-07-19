@@ -20,6 +20,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -45,45 +46,139 @@ fun QuickLinkScreen(userStore: UserStore) {
     val context = LocalContext.current
     val links by userStore.quickLinks.collectAsState(initial = emptyList())
     var itemToDelete by remember { mutableStateOf<UserStore.LinkItem?>(null) }
+    var showAddDialog by remember { mutableStateOf(false) }
+    var newTitle by remember { mutableStateOf("") }
+    var newUrl by remember { mutableStateOf("") }
 
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .verticalScroll(rememberScrollState()),
+        modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        if (links.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(180.dp),
-                contentAlignment = Alignment.Center
+        // Squircle manual addition button row
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Surface(
+                onClick = { showAddDialog = true },
+                shape = RoundedCornerShape(12.dp),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)),
+                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.25f),
+                modifier = Modifier.size(40.dp)
             ) {
-                Text(
-                    text = "No saved links yet",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                )
-            }
-        } else {
-            links.forEach { item ->
-                LinkCard(
-                    item = item,
-                    onOpen = {
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(item.url))
-                        context.startActivity(intent)
-                    },
-                    onShare = {
-                        val sendIntent = Intent(Intent.ACTION_SEND).apply {
-                            type = "text/plain"
-                            putExtra(Intent.EXTRA_TEXT, item.url)
-                        }
-                        context.startActivity(Intent.createChooser(sendIntent, "Share Link"))
-                    },
-                    onDelete = { itemToDelete = item }
-                )
+                Box(contentAlignment = Alignment.Center) {
+                    Text(
+                        text = "+",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
             }
         }
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            if (links.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(180.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Share links to save or add manually",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                    )
+                }
+            } else {
+                links.forEach { item ->
+                    LinkCard(
+                        item = item,
+                        onOpen = {
+                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(item.url))
+                            context.startActivity(intent)
+                        },
+                        onShare = {
+                            val sendIntent = Intent(Intent.ACTION_SEND).apply {
+                                type = "text/plain"
+                                putExtra(Intent.EXTRA_TEXT, item.url)
+                            }
+                            context.startActivity(Intent.createChooser(sendIntent, "Share Link"))
+                        },
+                        onDelete = { itemToDelete = item }
+                    )
+                }
+            }
+        }
+    }
+
+    if (showAddDialog) {
+        AlertDialog(
+            onDismissRequest = { 
+                showAddDialog = false
+                newTitle = ""
+                newUrl = ""
+            },
+            title = { Text("Add Link Manually") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    OutlinedTextField(
+                        value = newTitle,
+                        onValueChange = { newTitle = it },
+                        label = { Text("Title (Optional)") },
+                        placeholder = { Text("My Website") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    OutlinedTextField(
+                        value = newUrl,
+                        onValueChange = { newUrl = it },
+                        label = { Text("URL") },
+                        placeholder = { Text("example.com") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        if (newUrl.isNotBlank()) {
+                            val formattedUrl = if (!newUrl.startsWith("http://") && !newUrl.startsWith("https://")) {
+                                "https://$newUrl"
+                            } else {
+                                newUrl
+                            }
+                            userStore.saveQuickLink(newTitle, formattedUrl, null)
+                            showAddDialog = false
+                            newTitle = ""
+                            newUrl = ""
+                        }
+                    },
+                    enabled = newUrl.isNotBlank()
+                ) {
+                    Text("Add", fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        showAddDialog = false
+                        newTitle = ""
+                        newUrl = ""
+                    }
+                ) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 
     if (itemToDelete != null) {

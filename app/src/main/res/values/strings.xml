@@ -11,6 +11,6 @@
     <string name="shortcut_quick_chat_short">WhatsApp Direct</string>
     <string name="shortcut_quick_chat_long">Direct WhatsApp Chat</string>
     
-    <string name="shortcut_quick_insta_short">Insta Profiler</string>
-    <string name="shortcut_quick_insta_long">Instant Profile Search</string>
+    <string name="shortcut_quick_insta_short">Social Profiler</string>
+    <string name="shortcut_quick_insta_long">Search Social Profiles</string>
 </resources>

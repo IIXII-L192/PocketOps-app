@@ -70,7 +70,7 @@ import l192.aakarsh.pocketops.data.UserStore
 import l192.aakarsh.pocketops.ui.screens.DashboardScreen
 import l192.aakarsh.pocketops.ui.screens.EnterAmountScreen
 import l192.aakarsh.pocketops.ui.screens.QuickChatScreen
-import l192.aakarsh.pocketops.ui.screens.QuickInstaScreen
+import l192.aakarsh.pocketops.ui.screens.SocialProfilerScreen
 import l192.aakarsh.pocketops.ui.screens.QuickTool
 import l192.aakarsh.pocketops.ui.screens.SetupScreen
 import l192.aakarsh.pocketops.ui.screens.ShowQrScreen
@@ -96,7 +96,7 @@ sealed interface PocketOpsUiState {
     data object WhatsApp : PocketOpsUiState
     data object Telegram : PocketOpsUiState
     data object SMS : PocketOpsUiState
-    data object Instagram : PocketOpsUiState
+    data object SocialProfiler : PocketOpsUiState
     data object Clipboard : PocketOpsUiState
     data object Link : PocketOpsUiState
     data object Web : PocketOpsUiState
@@ -237,7 +237,7 @@ fun PocketOpsApp(
                 }
             }
             "l192.aakarsh.pocketops.ACTION_QUICK_CHAT" -> PocketOpsUiState.WhatsApp
-            "l192.aakarsh.pocketops.ACTION_QUICK_INSTA" -> PocketOpsUiState.Instagram
+            "l192.aakarsh.pocketops.ACTION_QUICK_INSTA" -> PocketOpsUiState.SocialProfiler
             else -> PocketOpsUiState.Dashboard
         }
         if (targetState != PocketOpsUiState.Dashboard) {
@@ -369,7 +369,7 @@ fun PocketOpsApp(
                 QuickTool.WHATSAPP -> PocketOpsUiState.WhatsApp
                 QuickTool.TELEGRAM -> PocketOpsUiState.Telegram
                 QuickTool.SMS -> PocketOpsUiState.SMS
-                QuickTool.INSTAGRAM -> PocketOpsUiState.Instagram
+                QuickTool.SOCIAL_PROFILER -> PocketOpsUiState.SocialProfiler
                 QuickTool.CLIPBOARD -> PocketOpsUiState.Clipboard
                 QuickTool.LINK -> PocketOpsUiState.Link
                 QuickTool.WEB -> PocketOpsUiState.Web
@@ -508,7 +508,7 @@ fun PocketOpsContent(
                             PocketOpsUiState.WhatsApp -> if (selectingCountry) "Select Country" else if (showChatSettings) "Chat Settings" else "WhatsApp Direct"
                             PocketOpsUiState.Telegram -> if (selectingCountry) "Select Country" else if (showChatSettings) "Chat Settings" else "Telegram Direct"
                             PocketOpsUiState.SMS -> if (selectingCountry) "Select Country" else if (showChatSettings) "Chat Settings" else "Send SMS"
-                            PocketOpsUiState.Instagram -> "Insta Profiler"
+                            PocketOpsUiState.SocialProfiler -> "Social Profiler"
                             PocketOpsUiState.Clipboard -> "Clip Vault"
                             PocketOpsUiState.Link -> "Bookmarks"
                             PocketOpsUiState.Web -> "Web Search"
@@ -639,8 +639,10 @@ fun PocketOpsContent(
                                 onToggleSelectingCountry = onToggleSelectingCountry,
                                 onDismiss = onDismiss
                             )
-                        PocketOpsUiState.Instagram ->
-                            QuickInstaScreen(onDismiss = onDismiss)
+                        PocketOpsUiState.SocialProfiler ->
+                            SocialProfilerScreen(
+                                onDismiss = { onDismiss() }
+                            )
                         PocketOpsUiState.Clipboard ->
                             QuickClipScreen(
                                 userStore = userStore,

@@ -26,7 +26,7 @@ import androidx.compose.ui.unit.dp
 import l192.aakarsh.pocketops.R
 
 enum class QuickTool {
-    UPI, WHATSAPP, TELEGRAM, SMS, INSTAGRAM, CLIPBOARD, LINK, WEB, YT_EXPLORER
+    UPI, WHATSAPP, TELEGRAM, SMS, SOCIAL_PROFILER, CLIPBOARD, LINK, WEB, YT_EXPLORER
 }
 
 @Composable
@@ -78,11 +78,11 @@ fun DashboardScreen(
         )
 
         ToolCard(
-            title = "Insta Profiler",
-            description = "Instant Instagram profile searches",
+            title = "Social Profiler",
+            description = "Instagram, Facebook, X, Threads, LinkedIn",
             iconRes = R.drawable.ic_instagram,
             accentColor = if (isDark) Color(0xFFF48FB1) else Color(0xFFE91E63), // Insta Pink
-            onClick = { onToolSelected(QuickTool.INSTAGRAM) }
+            onClick = { onToolSelected(QuickTool.SOCIAL_PROFILER) }
         )
 
         ToolCard(
