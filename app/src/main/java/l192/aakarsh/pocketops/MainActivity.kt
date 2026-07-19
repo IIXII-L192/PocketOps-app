@@ -173,42 +173,46 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun checkClipboard(userStore: UserStore) {
-        lifecycleScope.launch {
-            try {
-                val isPaused = userStore.clipboardPause.first()
-                if (isPaused) return@launch
+        try {
+            val clipboard = getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+            if (clipboard.hasPrimaryClip()) {
+                val clipData = clipboard.primaryClip
+                if (clipData != null && clipData.itemCount > 0) {
+                    val item = clipData.getItemAt(0)
+                    val text = item.text?.toString()
+                    val uri = item.uri
 
-                val clipboard = getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                if (clipboard.hasPrimaryClip()) {
-                    val clipData = clipboard.primaryClip
-                    if (clipData != null && clipData.itemCount > 0) {
-                        val item = clipData.getItemAt(0)
-                        val text = item.text?.toString()
-                        val uri = item.uri
-                        
-                        var imageStream: java.io.InputStream? = null
-                        if (uri != null && text.isNullOrBlank()) {
-                            try {
-                                imageStream = contentResolver.openInputStream(uri)
-                            } catch (e: Exception) {
-                                e.printStackTrace()
-                            }
-                        }
+                    lifecycleScope.launch {
+                        try {
+                            val isPaused = userStore.clipboardPause.first()
+                            if (isPaused) return@launch
 
-                        if (!text.isNullOrBlank() || imageStream != null) {
-                            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-                                if (!text.isNullOrBlank()) {
-                                    userStore.addTextToClipboardHistory(text)
-                                } else if (imageStream != null) {
-                                    userStore.addImageStreamToClipboardHistory(imageStream)
+                            var imageStream: java.io.InputStream? = null
+                            if (uri != null && text.isNullOrBlank()) {
+                                try {
+                                    imageStream = contentResolver.openInputStream(uri)
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
                                 }
                             }
+
+                            if (!text.isNullOrBlank() || imageStream != null) {
+                                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                                    if (!text.isNullOrBlank()) {
+                                        userStore.addTextToClipboardHistory(text)
+                                    } else if (imageStream != null) {
+                                        userStore.addImageStreamToClipboardHistory(imageStream)
+                                    }
+                                }
+                            }
+                        } catch (e: Exception) {
+                            e.printStackTrace()
                         }
                     }
                 }
-            } catch (e: Exception) {
-                e.printStackTrace()
             }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
