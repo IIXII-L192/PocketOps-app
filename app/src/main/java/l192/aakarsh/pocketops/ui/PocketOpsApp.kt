@@ -78,6 +78,7 @@ import l192.aakarsh.pocketops.ui.screens.SettingsScreen
 import l192.aakarsh.pocketops.ui.screens.QuickClipScreen
 import l192.aakarsh.pocketops.ui.screens.QuickLinkScreen
 import l192.aakarsh.pocketops.ui.screens.QuickWebScreen
+import l192.aakarsh.pocketops.ui.screens.YtExplorerScreen
 import l192.aakarsh.pocketops.utils.QRCodeGenerator
 import l192.aakarsh.pocketops.utils.UpdateManager
 import l192.aakarsh.pocketops.utils.UpdateState
@@ -99,6 +100,7 @@ sealed interface PocketOpsUiState {
     data object Clipboard : PocketOpsUiState
     data object Link : PocketOpsUiState
     data object Web : PocketOpsUiState
+    data object YtExplorer : PocketOpsUiState
     data object Settings : PocketOpsUiState
 
 }
@@ -371,6 +373,7 @@ fun PocketOpsApp(
                 QuickTool.CLIPBOARD -> PocketOpsUiState.Clipboard
                 QuickTool.LINK -> PocketOpsUiState.Link
                 QuickTool.WEB -> PocketOpsUiState.Web
+                QuickTool.YT_EXPLORER -> PocketOpsUiState.YtExplorer
             }
             navigateTo(targetState)
         },
@@ -502,13 +505,14 @@ fun PocketOpsContent(
 
                     Text(
                         text = when (uiState) {
-                            PocketOpsUiState.WhatsApp -> if (selectingCountry) "Select Country" else if (showChatSettings) "Chat Settings" else "Quick Chat"
-                            PocketOpsUiState.Telegram -> if (selectingCountry) "Select Country" else if (showChatSettings) "Chat Settings" else "Quick Telegram"
-                            PocketOpsUiState.SMS -> if (selectingCountry) "Select Country" else if (showChatSettings) "Chat Settings" else "Quick SMS"
-                            PocketOpsUiState.Instagram -> "Quick Insta"
-                            PocketOpsUiState.Clipboard -> "Quick Clip"
-                            PocketOpsUiState.Link -> "Quick Link"
-                            PocketOpsUiState.Web -> "Quick Web"
+                            PocketOpsUiState.WhatsApp -> if (selectingCountry) "Select Country" else if (showChatSettings) "Chat Settings" else "WhatsApp Direct"
+                            PocketOpsUiState.Telegram -> if (selectingCountry) "Select Country" else if (showChatSettings) "Chat Settings" else "Telegram Direct"
+                            PocketOpsUiState.SMS -> if (selectingCountry) "Select Country" else if (showChatSettings) "Chat Settings" else "Send SMS"
+                            PocketOpsUiState.Instagram -> "Insta Profiler"
+                            PocketOpsUiState.Clipboard -> "Clip Vault"
+                            PocketOpsUiState.Link -> "Bookmarks"
+                            PocketOpsUiState.Web -> "Web Search"
+                            PocketOpsUiState.YtExplorer -> "YT Explorer"
                             PocketOpsUiState.Settings -> "Settings"
                             is PocketOpsUiState.Setup,
                             is PocketOpsUiState.EnterAmount,
@@ -644,6 +648,7 @@ fun PocketOpsContent(
                             )
                         PocketOpsUiState.Link -> QuickLinkScreen(userStore = userStore)
                         PocketOpsUiState.Web -> QuickWebScreen()
+                        PocketOpsUiState.YtExplorer -> YtExplorerScreen()
                         PocketOpsUiState.Settings ->
                             SettingsScreen(
                                 themeMode = themeMode,

@@ -5,12 +5,12 @@
     <string name="quick_tile_subtitle">Tap to open tools</string>
     <string name="shortcut_long_label">Show QR Code</string>
     
-    <string name="shortcut_quick_upi_short">Quick Collect</string>
-    <string name="shortcut_quick_upi_long">Open Quick Collect QR Generator</string>
+    <string name="shortcut_quick_upi_short">Pay Collect</string>
+    <string name="shortcut_quick_upi_long">Open Pay Collect QR Generator</string>
     
-    <string name="shortcut_quick_chat_short">Quick Chat</string>
+    <string name="shortcut_quick_chat_short">WhatsApp Direct</string>
     <string name="shortcut_quick_chat_long">Direct WhatsApp Chat</string>
     
-    <string name="shortcut_quick_insta_short">Quick Insta</string>
+    <string name="shortcut_quick_insta_short">Insta Profiler</string>
     <string name="shortcut_quick_insta_long">Instant Profile Search</string>
 </resources>

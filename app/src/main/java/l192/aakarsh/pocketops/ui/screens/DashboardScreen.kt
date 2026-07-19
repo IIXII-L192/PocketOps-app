@@ -26,7 +26,7 @@ import androidx.compose.ui.unit.dp
 import l192.aakarsh.pocketops.R
 
 enum class QuickTool {
-    UPI, WHATSAPP, TELEGRAM, SMS, INSTAGRAM, CLIPBOARD, LINK, WEB
+    UPI, WHATSAPP, TELEGRAM, SMS, INSTAGRAM, CLIPBOARD, LINK, WEB, YT_EXPLORER
 }
 
 @Composable
@@ -42,7 +42,7 @@ fun DashboardScreen(
         modifier = Modifier.fillMaxWidth()
     ) {
         ToolCard(
-            title = "Quick Collect",
+            title = "Pay Collect",
             description = "Offline payment QRs in seconds",
             iconRes = if (usePaypal) R.drawable.ic_paypal else R.drawable.ic_upi_pay,
             accentColor = if (usePaypal) {
@@ -54,7 +54,7 @@ fun DashboardScreen(
         )
 
         ToolCard(
-            title = "Quick Chat",
+            title = "WhatsApp Direct",
             description = "Whatsapp chat without contacts",
             iconRes = R.drawable.ic_whatsapp,
             accentColor = if (isDark) Color(0xFF81C784) else Color(0xFF4CAF50), // WhatsApp Green
@@ -62,7 +62,7 @@ fun DashboardScreen(
         )
 
         ToolCard(
-            title = "Quick Telegram",
+            title = "Telegram Direct",
             description = "Telegram chat by number/username",
             iconRes = R.drawable.ic_share,
             accentColor = if (isDark) Color(0xFF64B5F6) else Color(0xFF24A1DE), // Telegram Blue
@@ -70,7 +70,7 @@ fun DashboardScreen(
         )
 
         ToolCard(
-            title = "Quick SMS",
+            title = "Send SMS",
             description = "Send SMS without saving contact",
             iconRes = R.drawable.ic_phone,
             accentColor = if (isDark) Color(0xFFFFB74D) else Color(0xFFFF9800), // SMS Orange
@@ -78,7 +78,7 @@ fun DashboardScreen(
         )
 
         ToolCard(
-            title = "Quick Insta",
+            title = "Insta Profiler",
             description = "Instant Instagram profile searches",
             iconRes = R.drawable.ic_instagram,
             accentColor = if (isDark) Color(0xFFF48FB1) else Color(0xFFE91E63), // Insta Pink
@@ -86,7 +86,7 @@ fun DashboardScreen(
         )
 
         ToolCard(
-            title = "Quick Clip",
+            title = "Clip Vault",
             description = "Smart clipboard history",
             iconRes = R.drawable.ic_clipboard,
             accentColor = if (isDark) Color(0xFFFFD54F) else Color(0xFFF9A825), // Clipboard Yellow
@@ -94,7 +94,7 @@ fun DashboardScreen(
         )
 
         ToolCard(
-            title = "Quick Link",
+            title = "Bookmarks",
             description = "Save links with previews",
             iconRes = R.drawable.ic_link_45,
             accentColor = if (isDark) Color(0xFFB388FF) else Color(0xFF7C4DFF),
@@ -102,11 +102,19 @@ fun DashboardScreen(
         )
 
         ToolCard(
-            title = "Quick Web",
+            title = "Web Search",
             description = "Search with your engine",
             iconRes = R.drawable.ic_globe,
             accentColor = if (isDark) Color(0xFF4DD0E1) else Color(0xFF00838F),
             onClick = { onToolSelected(QuickTool.WEB) }
+        )
+
+        ToolCard(
+            title = "YT Explorer",
+            description = "Search directly on YouTube",
+            iconRes = R.drawable.ic_play,
+            accentColor = if (isDark) Color(0xFFEF5350) else Color(0xFFFF0000), // YouTube Red
+            onClick = { onToolSelected(QuickTool.YT_EXPLORER) }
         )
     }
 }
