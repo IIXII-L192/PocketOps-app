@@ -20,6 +20,7 @@ import l192.aakarsh.pocketops.ui.theme.PocketOpsTheme
 class MainActivity : ComponentActivity() {
     private var sharedFileUriState by androidx.compose.runtime.mutableStateOf<Uri?>(null)
     private var sharedTextState by androidx.compose.runtime.mutableStateOf<String?>(null)
+    private var isClipboardPaused = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
@@ -29,6 +30,12 @@ class MainActivity : ComponentActivity() {
         val shortcutAction = intent?.action
         val sharedLink = extractSharedLink(intent)
         
+        lifecycleScope.launch {
+            userStore.clipboardPause.collect {
+                isClipboardPaused = it
+            }
+        }
+
         handleIntent(intent)
 
         val pendingCrash = l192.aakarsh.pocketops.utils.DiagnosticLogger.getPendingCrashLogFile(this)
@@ -248,6 +255,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun checkClipboard(userStore: UserStore) {
+        if (isClipboardPaused) return
         try {
             val clipboard = getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
             if (clipboard.hasPrimaryClip()) {
@@ -257,31 +265,30 @@ class MainActivity : ComponentActivity() {
                     val text = item.text?.toString()
                     val uri = item.uri
 
-                    lifecycleScope.launch {
-                        try {
-                            val isPaused = userStore.clipboardPause.first()
-                            if (isPaused) return@launch
-
-                            var imageStream: java.io.InputStream? = null
-                            if (uri != null && text.isNullOrBlank()) {
-                                try {
-                                    imageStream = contentResolver.openInputStream(uri)
-                                } catch (e: Exception) {
-                                    e.printStackTrace()
-                                }
-                            }
-
-                            if (!text.isNullOrBlank() || imageStream != null) {
-                                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-                                    if (!text.isNullOrBlank()) {
-                                        userStore.addTextToClipboardHistory(text)
-                                    } else if (imageStream != null) {
-                                        userStore.addImageStreamToClipboardHistory(imageStream)
+                    if (!text.isNullOrBlank() || uri != null) {
+                        lifecycleScope.launch {
+                            try {
+                                var imageStream: java.io.InputStream? = null
+                                if (uri != null && text.isNullOrBlank()) {
+                                    try {
+                                        imageStream = contentResolver.openInputStream(uri)
+                                    } catch (e: Exception) {
+                                        e.printStackTrace()
                                     }
                                 }
+
+                                if (!text.isNullOrBlank() || imageStream != null) {
+                                    kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                                        if (!text.isNullOrBlank()) {
+                                            userStore.addTextToClipboardHistory(text)
+                                        } else if (imageStream != null) {
+                                            userStore.addImageStreamToClipboardHistory(imageStream)
+                                        }
+                                    }
+                                }
+                            } catch (e: Exception) {
+                                e.printStackTrace()
                             }
-                        } catch (e: Exception) {
-                            e.printStackTrace()
                         }
                     }
                 }

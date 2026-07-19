@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -39,16 +41,18 @@ fun DashboardScreen(
     Column(
         verticalArrangement = Arrangement.spacedBy(12.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .verticalScroll(rememberScrollState())
     ) {
         ToolCard(
             title = "Pay Collect",
             description = "Offline payment QRs in seconds",
             iconRes = if (usePaypal) R.drawable.ic_paypal else R.drawable.ic_upi_pay,
             accentColor = if (usePaypal) {
-                if (isDark) Color(0xFF29B6F6) else Color(0xFF003087) // PayPal Blue
+                if (isDark) Color(0xFF90CAF9) else Color(0xFF003087)
             } else {
-                if (isDark) Color(0xFF64B5F6) else Color(0xFF1E88E5) // UPI Blue
+                if (isDark) Color(0xFF64B5F6) else Color(0xFF1565C0)
             },
             onClick = { onToolSelected(QuickTool.UPI) }
         )
@@ -57,31 +61,31 @@ fun DashboardScreen(
             title = "WhatsApp Direct",
             description = "Whatsapp chat without contacts",
             iconRes = R.drawable.ic_whatsapp,
-            accentColor = if (isDark) Color(0xFF81C784) else Color(0xFF4CAF50), // WhatsApp Green
+            accentColor = if (isDark) Color(0xFF81C784) else Color(0xFF2E7D32),
             onClick = { onToolSelected(QuickTool.WHATSAPP) }
         )
 
         ToolCard(
             title = "Telegram Direct",
-            description = "Telegram chat by number/username",
-            iconRes = R.drawable.ic_share,
-            accentColor = if (isDark) Color(0xFF4FC3F7) else Color(0xFF03A9F4), // Telegram Light Blue
+            description = "Telegram chat by username",
+            iconRes = R.drawable.ic_telegram,
+            accentColor = if (isDark) Color(0xFF4FC3F7) else Color(0xFF0288D1),
             onClick = { onToolSelected(QuickTool.TELEGRAM) }
         )
 
         ToolCard(
             title = "Send SMS",
-            description = "Send SMS without saving contact",
-            iconRes = R.drawable.ic_phone,
-            accentColor = if (isDark) Color(0xFFFFB74D) else Color(0xFFFF9800), // SMS Orange
+            description = "",
+            iconRes = R.drawable.ic_sms,
+            accentColor = if (isDark) Color(0xFFFFB74D) else Color(0xFFE65100),
             onClick = { onToolSelected(QuickTool.SMS) }
         )
 
         ToolCard(
             title = "Social Profiler",
-            description = "Instagram, Facebook, X, Threads, LinkedIn",
-            iconRes = R.drawable.ic_social,
-            accentColor = if (isDark) Color(0xFFF48FB1) else Color(0xFFE91E63), // Insta Pink
+            description = "Search profiles on social media",
+            iconRes = R.drawable.ic_person_circle,
+            accentColor = if (isDark) Color(0xFFF48FB1) else Color(0xFFC2185B),
             onClick = { onToolSelected(QuickTool.SOCIAL_PROFILER) }
         )
 
@@ -89,7 +93,7 @@ fun DashboardScreen(
             title = "Clip Vault",
             description = "Smart clipboard history",
             iconRes = R.drawable.ic_clipboard,
-            accentColor = if (isDark) Color(0xFFFFD54F) else Color(0xFFF9A825), // Clipboard Yellow
+            accentColor = if (isDark) Color(0xFFFFE082) else Color(0xFFF57F17),
             onClick = { onToolSelected(QuickTool.CLIPBOARD) }
         )
 
@@ -97,7 +101,7 @@ fun DashboardScreen(
             title = "Bookmarks",
             description = "Save links with previews",
             iconRes = R.drawable.ic_bookmarks,
-            accentColor = if (isDark) Color(0xFFB388FF) else Color(0xFF7C4DFF),
+            accentColor = if (isDark) Color(0xFFB388FF) else Color(0xFF6200EA),
             onClick = { onToolSelected(QuickTool.LINK) }
         )
 
@@ -105,7 +109,7 @@ fun DashboardScreen(
             title = "Web Search",
             description = "Search with your engine",
             iconRes = R.drawable.ic_globe,
-            accentColor = if (isDark) Color(0xFF4DB6AC) else Color(0xFF009688), // Web Search Emerald Teal
+            accentColor = if (isDark) Color(0xFF80CBC4) else Color(0xFF00695C),
             onClick = { onToolSelected(QuickTool.WEB) }
         )
 
@@ -113,7 +117,7 @@ fun DashboardScreen(
             title = "YT Explorer",
             description = "Search directly on YouTube",
             iconRes = R.drawable.ic_youtube,
-            accentColor = if (isDark) Color(0xFFEF5350) else Color(0xFFFF0000), // YouTube Red
+            accentColor = if (isDark) Color(0xFFEF9A9A) else Color(0xFFD32F2F),
             onClick = { onToolSelected(QuickTool.YT_EXPLORER) }
         )
 
@@ -121,7 +125,7 @@ fun DashboardScreen(
             title = "Local Save",
             description = "Save shared files locally",
             iconRes = R.drawable.ic_sd_card,
-            accentColor = if (isDark) Color(0xFF90A4AE) else Color(0xFF607D8B), // Slate/Grey-Blue
+            accentColor = if (isDark) Color(0xFFB0BEC5) else Color(0xFF37474F),
             onClick = { onToolSelected(QuickTool.LOCAL_SAVE) }
         )
     }
@@ -130,7 +134,7 @@ fun DashboardScreen(
 @Composable
 fun ToolCard(
     title: String,
-    description: String,
+    description: String = "",
     iconRes: Int,
     accentColor: Color,
     onClick: () -> Unit
@@ -169,11 +173,13 @@ fun ToolCard(
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
-                Text(
-                    text = description,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.85f)
-                )
+                if (description.isNotEmpty()) {
+                    Text(
+                        text = description,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.85f)
+                    )
+                }
             }
         }
     }

@@ -557,8 +557,8 @@ fun QuickChatScreen(
                                     )
                                     val iconRes = when (mode) {
                                         "WhatsApp" -> R.drawable.ic_whatsapp
-                                        "Telegram" -> R.drawable.ic_share
-                                        else -> R.drawable.ic_phone
+                                        "Telegram" -> R.drawable.ic_telegram
+                                        else -> R.drawable.ic_sms
                                     }
                                     val iconTint = when (mode) {
                                         "WhatsApp" -> if (androidx.compose.foundation.isSystemInDarkTheme()) Color(0xFF81C784) else Color(0xFF4CAF50)
@@ -608,12 +608,12 @@ fun QuickChatScreen(
         val detectedIso = detectCountryIso(phoneNumber)
         val activeFlag = getFlagEmoji(detectedIso)
 
-        val digitsOnly = if (mode == "Telegram" && (phoneNumber.startsWith("@") || phoneNumber.any { it.isLetter() })) {
+        val digitsOnly = if (mode == "Telegram") {
             phoneNumber.trim()
         } else {
             phoneNumber.replace(Regex("[^0-9]"), "")
         }
-        val isTelegramUsername = mode == "Telegram" && (phoneNumber.startsWith("@") || phoneNumber.trim().any { it.isLetter() })
+        val isTelegramUsername = mode == "Telegram"
         val isValid = if (isTelegramUsername) phoneNumber.trim().length >= 3 else digitsOnly.length >= 10
 
         val finalNumber = when {
@@ -637,7 +637,7 @@ fun QuickChatScreen(
             Text(
                 text = when (mode) {
                     "WhatsApp" -> "Enter a phone number to start a WhatsApp chat — no need to save the contact first."
-                    "Telegram" -> "Enter a phone number, username, or link to start a Telegram chat."
+                    "Telegram" -> "Enter a Telegram username to start a chat."
                     else -> "Enter a phone number to send an SMS without saving the contact."
                 },
                 style = MaterialTheme.typography.bodySmall,
@@ -649,12 +649,12 @@ fun QuickChatScreen(
             OutlinedTextField(
                 value = phoneNumber,
                 onValueChange = { phoneNumber = it },
-                label = { Text(if (mode == "Telegram") "Phone Number or Username" else "Phone Number") },
+                label = { Text(if (mode == "Telegram") "Username" else "Phone Number") },
                 placeholder = {
                     Text(
                         when (mode) {
                             "WhatsApp" -> "+$defaultCode 98765-43210"
-                            "Telegram" -> "@username or +$defaultCode 98765-43210"
+                            "Telegram" -> "@username"
                             else -> "+$defaultCode 98765-43210"
                         }
                     )
@@ -801,8 +801,8 @@ fun QuickChatScreen(
             ) {
                 val iconRes = when (mode) {
                     "WhatsApp" -> R.drawable.ic_whatsapp
-                    "Telegram" -> R.drawable.ic_share
-                    else -> R.drawable.ic_phone
+                    "Telegram" -> R.drawable.ic_telegram
+                    else -> R.drawable.ic_sms
                 }
                 Icon(
                     painter = painterResource(iconRes),
