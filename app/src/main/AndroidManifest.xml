@@ -36,7 +36,6 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="file" />
                 <data android:scheme="content" />
                 <data android:mimeType="*/*" />
             </intent-filter>
@@ -59,7 +58,6 @@
             </intent-filter>
         </service>
 
-
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.provider"
@@ -73,8 +71,3 @@
     </application>
 
 </manifest>
-
-
-
-
-
